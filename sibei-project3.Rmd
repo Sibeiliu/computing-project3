@@ -38,14 +38,25 @@ update=NULL
 for( c in 1:length(g))
 update=rbind(update,g[[c]])
 
-trial_data=update %>% filter(region=="China")
+## update is the cleaned data
+
+trial_data=update %>% filter(region=="Afghanistan")
 ```
 
+### useless code below
 ```{r}
-f_log=function(a,b,c,t){
-  a/(1+exp(-b(t-c)))
+
+data_trans=function(x,y,a,c){
+  x=x-c
+  y=y/a
+  return(list(x=x,y=y))
 }
 
+loss_grain=function(k,x,y){
+  loss=-(1/n)sum(y*x*k-log(1+exp(k*x)))
+  gradient=-(1/n)sum(y*x+exp(k*x)/(1+exp(k*x)))
+  return(list(loss=loss,gradient=gradient))
+}
 
 ```
 
