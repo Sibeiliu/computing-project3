@@ -1,0 +1,134 @@
+---
+title: "project 3"
+author: "Qi Yuchen, yq2279"
+date: "2020/4/19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(caret)
+library(matrixcalc)
+library(pracma)
+```
+
+## data import and cleaning
+
+```{r}
+df.raw = read.csv("covid19-1.csv")
+df = df.raw %>% 
+  janitor::clean_names() %>% 
+  select(country_region, province_state, date, confirmed_cases) %>% 
+  filter(confirmed_cases != 0)
+
+region.index = levels(df$country_region)
+
+# first step to write a function
+df.china = df %>% 
+  filter(country_region == region.index[30]) %>% 
+  group_by(country_region, date) %>% 
+  summarise(cases = sum(confirmed_cases)) %>% 
+  mutate(formal_date = as.numeric(as.character(as.Date(date, '%m/%d/%Y'), format="%Y%m%d"))) %>% 
+  mutate(time = formal_date-min(formal_date)) %>% 
+  dplyr::select(region = country_region, date, time, cases) %>% 
+  arrange(time)
+
+# function to get data for a specific region
+df.region = function(df, region) {
+  df.r = df %>% 
+    filter(country_region == region) %>% 
+    group_by(country_region, date) %>% 
+    summarise(cases = sum(confirmed_cases)) %>% 
+    mutate(formal_date = as.numeric(as.character(as.Date(date, '%m/%d/%Y'), format="%Y%m%d"))) %>% 
+    mutate(time = formal_date-min(formal_date)) %>% 
+    dplyr::select(region = country_region, date, time, cases) %>% 
+    arrange(time)
+  
+  df.r
+}
+
+df.test = df.region(df, region.index[15])
+df.china = df.region(df, region.index[30])
+```
+
+## optimization
+
+```{r}
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  a/(1+exp(-b*(t-c)))
+}
+
+# objective function to maximize
+obj = function(beta, x, y) {
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  
+  y.fit = f.logit(beta, x)
+  
+  2*dot(y, y.fit) - dot(y.fit, y.fit)
+}
+
+
+# objective, gradient and hessian
+logisticstuff <- function(x, y, beta) {
+  # obj
+  obj = obj(beta, x, y)
+  # gradient
+  f = function(beta) {
+      a = beta[1]
+      b = beta[2]
+      c = beta[3]
+      
+      y.fit = f.logit(beta, x)
+  
+      2*dot(y, y.fit) - dot(y.fit, y.fit)
+  }
+  grad = grad(f, beta)  
+  # Hessian
+  hess = hessian(f, beta)
+ 
+  return(list(obj = obj, grad = grad, hess = hess))
+}
+
+# function to get the optimal beta
+logitcurve = function(X, Y, func = logisticstuff, start, tol = 1e-10, maxiter = 200) {
+  i <- 0
+  cur <- start
+  stuff <- func(X, Y, cur)
+  res <- c(0, stuff$obj, cur)
+  prevobj <- -Inf
+  prev = Inf
+  while(i < maxiter && abs(stuff$obj - prevobj) > tol) {
+    i <- i + 1
+    prevobj <- stuff$obj
+    prev <- cur
+    
+    hess = stuff$hess
+    while (!is.negative.definite(hess)) {
+      hess = hess - 0.1*diag(start)
+    }
+    
+    cur <- prev - solve(hess) %*% stuff$grad
+    stuff <- func(X, Y, cur) # obj, gradient, Hessian
+    res <- rbind(res, c(i, stuff$obj, cur))
+  }
+  
+  return(res)
+}
+
+# test
+logitcurve(df.test$time, df.test$cases,start = c(80,0.1,50))
+beta_hat = c(80,0.1,50)
+y_hat = f.logit(c(80,0.1,50),df.test$time)
+mean((y_hat - df.test$cases)^2)
+```
+
+
+
+
+
