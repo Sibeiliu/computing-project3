@@ -35,8 +35,7 @@ new_g=g[[i]] %>% mutate(new_date=h)
 g[[i]]=new_g[order(new_g$new_date,decreasing=T),]
 
 g[[i]]=g[[i]]%>% mutate(
-  t_diff=as.numeric(as.Date(strptime(date, "%m/%d/%y"))-as.Date(strptime(initial, "%m/%d/%y")))) %>% 
-  mutate(cul=cumsum(case))
+  t_diff=as.numeric(as.Date(strptime(date, "%m/%d/%y"))-as.Date(strptime(initial, "%m/%d/%y")))) 
 i=i+1
 }
 
@@ -48,9 +47,11 @@ update=rbind(update,g[[c]])
 
 trial_data=update %>% filter(region=="Afghanistan")
 x=unlist(trial_data[,"t_diff"]) %>% as.vector() 
-y=unlist(trial_data[,"cul"]) %>% as.vector() 
+y=unlist(trial_data[,"case"]) %>% as.vector() 
 
-ggplot(trial_data,aes(x=t_diff,y=cul))+geom_line()
+ggplot(trial_data,aes(x=t_diff,y=case))+geom_line()
+
+
 ```
 
 # cooridnate wise- first blood
@@ -84,8 +85,8 @@ update_beta_once=function(beta,x,y){
   return(result)
 }
 
-beta_enter=c(10000,1,30)
-update_beta_once(beta_enter,x,y)
+
+# update_beta_once(beta_enter,x,y)
 ```
 
 
@@ -117,7 +118,7 @@ order2=which(result4[,"rss"]==min_tar)
 
   #return(result4)}
   
-beta_enter=c(10000,1,30)
+beta_enter=c(100000,1,30)
 update_beta_all(beta_enter,x,y)
 
 ```
