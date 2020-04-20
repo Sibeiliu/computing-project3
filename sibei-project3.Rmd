@@ -110,7 +110,7 @@ order2=which(result4[,"cur_tar"]==max_tar)
 
   #return(result4)}
   
-beta_enter=c(800,2,20)
+beta_enter=c(10000,1,30)
 update_beta_all(beta_enter,x,y)
 
 ```
