@@ -54,7 +54,51 @@ df.china = df.region(df, region.index[30])
 
 ## optimization
 
-```{r}
+```{r coordinate-wise}
+f.logit=function(x, beta){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  a/(1+exp(-b*(x-c)))
+}
+
+rss = function(x, y, beta) {
+  sum((y-f.logit(x,beta))^2)
+}
+
+logitcurve = function(x, y, start, tol = 1e-10, maxiter = 1000) {
+  ## start is c(a,b,c)
+  ## x is time, y is cases
+  cur = start
+  rss.cur = rss(x,y,cur)
+  rss.prev = Inf
+  res = c(0, rss.cur, cur)
+  i = 0
+  while (i < maxiter && abs(rss.cur - rss.prev) > tol) {
+    i = i+1
+    prev = cur
+    rss.prev = rss.cur
+    denom = 1 + exp(-prev[2]*(x-prev[3]))
+    cur[1] = sum(y/denom) / sum(1/denom^2)
+    y.trans = log(cur[1]/y - 1)
+    bc = lm(y.trans~x)$coefficients
+    cur[2] = -bc[2]
+    cur[3] = bc[1]/cur[2]
+    rss.cur = rss(x,y,cur)
+    res = rbind(res, c(i, rss.cur, cur))
+  }
+  res
+}
+
+# test
+test = logitcurve(df.china$time, df.china$cases,start = c(110000,0.1,80))
+beta_hat = c(115253.23,0.02189380,134.52418)
+```
+
+
+
+
+```{r newton}
 f.logit=function(beta, t){
   a = beta[1]
   b = beta[2]
