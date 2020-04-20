@@ -19,14 +19,17 @@ names(data_all)=c("id","province","region","lat","long","date","confirm","fatali
 clean_data=data_all %>% filter(confirm>0) %>% select(-lat,-long) %>% group_by(region,date) %>%summarise(case=sum(confirm)) 
 
 g=split(clean_data,clean_data$region)
-i=i
+i=1
 for(i  in 1:length(g)){
   h=NULL
   d=1
 for(d in 1:nrow(g[[i]]))
 {h[d]=as.numeric(as.Date(strptime( "1/1/20", "%m/%d/%y"))-as.Date(strptime(g[[i]][d,2], "%m/%d/%y")))
 d=d+1}
+  #h
 initial=(g[[i]][which(h==max(h)),2])
+new_g=g[[i]] %>% mutate(new_date=h) 
+g[[i]]=new_g[order(new_g$new_date,decreasing=T),]
 
 g[[i]]=g[[i]]%>% mutate(
   t_diff=as.numeric(as.Date(strptime(date, "%m/%d/%y"))-as.Date(strptime(initial, "%m/%d/%y")))) %>% 
@@ -44,6 +47,7 @@ trial_data=update %>% filter(region=="Afghanistan")
 x=unlist(trial_data[,"t_diff"]) %>% as.vector() 
 y=unlist(trial_data[,"cul"]) %>% as.vector() 
 
+ggplot(trial_data,aes(x=t_diff,y=cul))+geom_line()
 ```
 
 # cooridnate wise- first blood
