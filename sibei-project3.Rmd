@@ -107,6 +107,7 @@ update_beta_all=function(beta_enter,x,y,tol=exp(-10),max=200){
 order2=which(result4[,"cur_tar"]==max_tar)
   return(result4[order2,1:3]) }
 
+
   #return(result4)}
   
 beta_enter=c(800,2,20)
