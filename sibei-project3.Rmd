@@ -56,16 +56,13 @@ f.logit=function(beta, t){
   return(a/(1+exp(-b*(t-c))))
 }
 
-# objective function to maximize
-obj = function(beta, x, y) {
-  a = beta[1]
-  b = beta[2]
-  c = beta[3]
-  
-  y.fit = f.logit(beta, x)
-  
-  2*dot(y, y.fit) - dot(y.fit, y.fit)
+# objective function rss to min
+
+rss = function(x, y, beta) {
+  value=sum((y-f.logit(beta,x))^2)
+  return(value)
 }
+
 
 update_beta_once=function(beta,x,y){
   e_i=1+exp(-beta[2]*(x-beta[3]))
@@ -74,25 +71,26 @@ update_beta_once=function(beta,x,y){
   b_update=-(as.numeric(lm(y_new~x)$coefficients[2]))
   c_update=(as.numeric(lm(y_new~x)$coefficients[1]))/b_update
   update_beta=c(a_update,b_update,c_update)
-  target=obj(update_beta,x,y)
+  target=rss(x,y,update_beta)
   
   result=c(update_beta,target)
-  names(result)=c("a","b","c")
   return(result)
 }
 
+beta_enter=c(10000,1,30)
+update_beta_once(beta_enter,x,y)
 ```
 
 
 
 ```{r}
 update_beta_all=function(beta_enter,x,y,tol=exp(-10),max=200){
-  cur=obj(beta_enter,x,y)
+  cur=rss(x,y,beta_enter)
   pre=Inf
   beta_3=beta_enter
   iteration=0
   result4=c(beta_enter,cur,iteration)
-  names(result4)=c("a","b","c","cur_tar","inter")
+  names(result4)=c("a","b","c","rss","inter")
  while((abs(cur-pre)>tol) & (iteration < max)){
    pre=cur
   iteration=iteration+1
@@ -103,9 +101,11 @@ update_beta_all=function(beta_enter,x,y,tol=exp(-10),max=200){
   result4=rbind(result4,result_new2)
   beta_3=beta_new
  }
-  max_tar=max(result4[,"cur_tar"])
-order2=which(result4[,"cur_tar"]==max_tar)
-  return(result4[order2,1:3]) }
+  min_tar=min(result4[,"rss"])
+order2=which(result4[,"rss"]==min_tar)
+ opti=result4[order2,1:3]
+ rss=result4[order2,4]
+  return(list(opt=opti,rss=rss)) }
 
 
   #return(result4)}
