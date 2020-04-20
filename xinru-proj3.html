@@ -206,10 +206,65 @@ i=i+1
 update=NULL
 for( c in 1:length(g))
 update=rbind(update,g[[c]])
-trial_data=update %&gt;% filter(region==&quot;China&quot;)</code></pre>
-<pre class="r"><code>f_log=function(a,b,c,t){
-  a/(1+exp(-b(t-c)))
-}</code></pre>
+trial_data=update %&gt;% filter(region==&quot;China&quot;)
+afghanistan = update %&gt;% filter(region == &quot;Afghanistan&quot;)</code></pre>
+<pre class="r"><code>## calculate y
+f_log=function(betavec,t){
+  y = betavec[1]/(1+exp(-betavec[2]*(t-betavec[3])))
+  return(y)
+}
+
+## calculate mse
+target &lt;- function(dat,beta) {
+  x = dat$t_diff
+  y = dat$cul
+  y_hat = f_log(beta,x)
+  mse &lt;- sum((y_hat-y)^2)
+  return(mse)
+}
+
+## fix b and c, calculate a
+fun_a = function(dat,beta){
+  x = dat$t_diff
+  y = dat$cul
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  e = 1+exp(-b*x+b*c)
+  a = sum(y/e)/sum(1/e^2)
+}
+
+## calculate b and c
+fun_bc = function(dat,a){
+  x = dat$t_diff
+  y = dat$cul
+  y_trans = log(a/y-1)
+  lm1 = lm(y_trans~x)
+  b =  b = -as.numeric(lm1$coefficients[2])
+  c =  as.numeric(lm1$coefficients[1])/b
+  betavec = c(a,b,c)
+  return(betavec)
+}
+
+## coordinatewise
+coordinate &lt;- function(dat, start, tol=1e-10, maxiter = 200) {
+  i &lt;- 0
+  betavec &lt;- start
+  target &lt;- target(dat,betavec)
+  res &lt;- c(0, target, betavec)
+  prevtarget &lt;- -Inf 
+  while(i &lt; maxiter &amp;&amp; abs(target - prevtarget) &gt; tol) {
+    i &lt;- i + 1 
+    prevtarget &lt;- target
+    prev &lt;- betavec
+    a = fun_a(dat,prev)
+    betavec = fun_bc(dat,a)
+    target = target(dat,betavec)
+    res &lt;- rbind(res, c(i, target, betavec))}  
+  return(res)
+}
+
+corres &lt;- coordinate(afghanistan, start = c(10000,1,30))</code></pre>
 
 
 
