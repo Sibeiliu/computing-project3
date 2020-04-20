@@ -1,0 +1,84 @@
+---
+title: "xj"
+author: "xj2249"
+date: "4/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(numDeriv)
+```
+
+# prepare data
+```{r}
+df <- read_csv("covid19-1.csv") %>% 
+  select(-c("Id","Province/State")) %>% 
+  mutate(Date = as.Date(Date,"%m/%d/%y"),
+         t = difftime(Date, as.Date("1/21/20","%m/%d/%y"),units = 'days') %>% as.numeric()
+         )
+
+# sum across region
+df2 <-
+  df %>% 
+  group_by(`Country/Region`,t) %>% 
+  summarise(case = sum(ConfirmedCases)) 
+
+# region with confirm case >7
+regions <-
+  df2 %>% 
+  summarise(max = max(case)) %>% 
+  filter(max > 7) %>%
+  .$`Country/Region`
+
+# data for analysis
+df3 <- 
+  df2 %>% 
+  filter(`Country/Region` %in% regions) 
+```
+
+# Task 1.1
+```{r}
+# Objective function; minimize sse
+sse <- function(data,par){
+  exp_y = par[1]/( 1+exp(-par[2]*(data$t - par[3])) )
+  sum((data$case-exp_y)^2)
+}
+
+
+# update function
+update <- function(data,par){
+  t = data$t
+  y = data$case
+  coef = lm(log(par[1]/y-1)~t)$coefficients
+  par[2] = -coef[2]
+  par[3] = coef[1]/par[2]
+  
+  e = 1 + exp(-par[2]*t+par[2]*par[3])
+  par[1] = sum(y/e)/sum(1/e^2)
+  return(par)
+}
+
+# coordinate function
+get_coordinate <- function(data,f,start,tol = 1e-10, maxiter = 200){
+    i = 0 
+    cur = start
+    obj = f(data,cur)
+    res = c(i,cur,obj)
+    pre_obj = -Inf
+    while ( i < maxiter && abs(obj - pre_obj) > tol ){ 
+        i = i + 1
+        pre_obj = obj
+        cur = update(data,cur)
+        obj = f(data,cur)
+        res = rbind(res,c(i,cur,obj))
+        }
+    return(res)
+}
+
+d1 <- filter(df3,`Country/Region` == "Australia")
+ans <- get_coordinate(d1,sse,start = c(10000,1,40))
+
+```
+
