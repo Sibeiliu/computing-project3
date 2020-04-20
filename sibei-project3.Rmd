@@ -38,14 +38,80 @@ update=NULL
 for( c in 1:length(g))
 update=rbind(update,g[[c]])
 
-trial_data=update %>% filter(region=="China")
+## update is the cleaned data
+
+trial_data=update %>% filter(region=="Afghanistan")
+x=unlist(trial_data[,"t_diff"]) %>% as.vector() 
+y=unlist(trial_data[,"cul"]) %>% as.vector() 
+
 ```
 
+# cooridnate wise- first blood
 ```{r}
-f_log=function(a,b,c,t){
-  a/(1+exp(-b(t-c)))
+
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  return(a/(1+exp(-b*(t-c))))
 }
 
+# objective function to maximize
+obj = function(beta, x, y) {
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  
+  y.fit = f.logit(beta, x)
+  
+  2*dot(y, y.fit) - dot(y.fit, y.fit)
+}
+
+update_beta_once=function(beta,x,y){
+  e_i=1+exp(-beta[2]*(x-beta[3]))
+  a_update=dot(y,1/e_i)/dot(1/e_i,1/e_i)
+  y_new=log(a_update/y-1)
+  b_update=-(as.numeric(lm(y_new~x)$coefficients[2]))
+  c_update=(as.numeric(lm(y_new~x)$coefficients[1]))/b_update
+  update_beta=c(a_update,b_update,c_update)
+  target=obj(update_beta,x,y)
+  
+  result=c(update_beta,target)
+  names(result)=c("a","b","c")
+  return(result)
+}
+
+```
+
+
+
+```{r}
+update_beta_all=function(beta_enter,x,y,tol=exp(-10),max=200){
+  cur=obj(beta_enter,x,y)
+  pre=Inf
+  beta_3=beta_enter
+  iteration=0
+  result4=c(beta_enter,cur,iteration)
+  names(result4)=c("a","b","c","cur_tar","inter")
+ while((abs(cur-pre)>tol) & (iteration < max)){
+   pre=cur
+  iteration=iteration+1
+   result_new=update_beta_once(beta_3,x,y)
+   beta_new=result_new[1:3]
+   cur=result_new[4]
+   result_new2=c(result_new,iteration)
+  result4=rbind(result4,result_new2)
+  beta_3=beta_new
+ }
+  max_tar=max(result4[,"cur_tar"])
+order2=which(result4[,"cur_tar"]==max_tar)
+  return(result4[order2,1:3]) }
+
+
+  #return(result4)}
+  
+beta_enter=c(10000,1,30)
+update_beta_all(beta_enter,x,y)
 
 ```
 
