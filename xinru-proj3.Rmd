@@ -22,10 +22,7 @@ df = df.raw %>%
   janitor::clean_names() %>% 
   dplyr::select(country_region, province_state, date, confirmed_cases) %>% 
   filter(confirmed_cases != 0)
-
-region.index = levels(df$country_region)
-
-
+region_index = as.character(unique(df$country_region))
 
 df.region = function(df, region) {
   df.r = df %>% 
@@ -40,16 +37,16 @@ df.region = function(df, region) {
 }
 
 i= 1
-df_list=vector("list", length = length(region.index))
-while(i < length(region.index)+1){
-  df_list[[i]]   = as.data.frame(df.region(df, region.index[i]))
-  print(i)
+df_list=vector("list", length = length(region_index))
+while(i < length(region_index)+1){
+  df_list[[i]]   = df.region(df, region_index[i])
   i = i+1
 }
 
 for (i in 1:length(df_list)){
-names(df_list)[i] <- region.index[i]
+names(df_list)[i] <- region_index[i]
 }
+
 ```
 
 ## method1
@@ -130,6 +127,7 @@ beta_trans = function(betavec) {
 
 ## transform data
 dat_trans = function(dat){
+  dat = as.data.frame(dat)
   x = dat$time
   y = dat$cases
   y_trans = 1/y
@@ -140,7 +138,7 @@ dat_trans = function(dat){
 beta_trans_back = function(betavec){
   a = 1/betavec[1]
   b = betavec[2]
-  c = (log(betavec[3])-log(a))/b
+  c = (log(betavec[3])+log(a))/b
   beta = c(a, b, c)
   return(beta)
 }
@@ -207,7 +205,7 @@ modified_NewtonRaphson <- function(dat,start, tol=1e-10,
 
 ## For example
 
-beta = beta_trans(c(1000,0.1,40))
+beta = beta_trans(c(10000,0.1,50))
 dat = dat_trans(df_list$Afghanistan)
 
 ans_mod = modified_NewtonRaphson(dat,beta)
@@ -262,6 +260,8 @@ while(count <100){
   cluster <- which(r == apply(r, 1, max), arr.ind = T)   
   cluster <- cluster[order(cluster[,1]),]   
   return(list(mu = mu,covlist = covlist, p_j = p_j,cluster = cluster)) }
+
+
 ```
 
 ```{r}
