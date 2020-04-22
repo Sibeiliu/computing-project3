@@ -356,7 +356,7 @@ modified_NewtonRaphson &lt;- function(dat,start, tol=1e-10,
    cur &lt;- prev - solve(stuff$Hess) %*% stuff$grad
    stuff = grad_hess(dat,cur)
 # step-halfing
-   while(stuff$target &lt;= prevtarget &amp;&amp; l &lt; 10){
+   while(stuff$target &lt;= prevtarget &amp;&amp; l &lt; 1000){
      cur &lt;- prev - (1/(2^l))*solve(stuff$Hess) %*% stuff$grad
      stuff = grad_hess(dat,cur)
      l= l+1
@@ -368,16 +368,15 @@ modified_NewtonRaphson &lt;- function(dat,start, tol=1e-10,
 
 ## For example
 
-beta = beta_trans(c(10000,0.1,50))
+beta = beta_trans(c(1000,0.2,50))
 dat = dat_trans(df_list$Afghanistan)
 
 ans_mod = modified_NewtonRaphson(dat,beta)
 
 beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
 beta_trans_back(beta_trans_final)</code></pre>
-<pre><code>## Warning in log(betavec[3]): 产生了NaNs</code></pre>
 <pre><code>## Warning in log(a): 产生了NaNs</code></pre>
-<pre><code>## [1] -0.001706335 -0.068897645          NaN</code></pre>
+<pre><code>## [1] -1.976526  0.305643       NaN</code></pre>
 </div>
 <div id="task2" class="section level2">
 <h2>Task2</h2>

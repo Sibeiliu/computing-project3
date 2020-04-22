@@ -193,7 +193,7 @@ modified_NewtonRaphson <- function(dat,start, tol=1e-10,
    cur <- prev - solve(stuff$Hess) %*% stuff$grad
    stuff = grad_hess(dat,cur)
 # step-halfing
-   while(stuff$target <= prevtarget && l < 10){
+   while(stuff$target <= prevtarget && l < 1000){
      cur <- prev - (1/(2^l))*solve(stuff$Hess) %*% stuff$grad
      stuff = grad_hess(dat,cur)
      l= l+1
@@ -205,7 +205,7 @@ modified_NewtonRaphson <- function(dat,start, tol=1e-10,
 
 ## For example
 
-beta = beta_trans(c(10000,0.1,50))
+beta = beta_trans(c(1000,0.2,50))
 dat = dat_trans(df_list$Afghanistan)
 
 ans_mod = modified_NewtonRaphson(dat,beta)
