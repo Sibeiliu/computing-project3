@@ -695,8 +695,10 @@ grad_hess &lt;- function(dat, beta) {
   b = beta[2]
   c = beta[3]
   n = length(x)
-  target = sum(y^2)+n*a^2+c^2*sum(exp(-2*b*x))-2*a*sum(y)-2*c*sum(y*exp(-b*x))+2*a*c*sum(exp(-b*x))
-  grad &lt;- c(2*n*a-2*sum(y)+2*c*sum(exp(-b*x)), c^2*sum(exp(-2*b*x)*(-2*x))-2*c*sum(y*exp(-b*x)*(-x))+2*a*c*sum(exp(-b*x)*(-x)), 2*c*sum(exp(-2*b*x))-2*sum(y*exp(-b*x))+2*a*sum(-b*x))
+  target = -(sum(y^2)+n*a^2+c^2*sum(exp(-2*b*x))-2*a*sum(y)-2*c*sum(y*exp(-b*x))+2*a*c*sum(exp(-b*x)))
+  grad &lt;- c(2*n*a-2*sum(y)+2*c*sum(exp(-b*x)),
+            c^2*sum(exp(-2*b*x)*(-2*x))-2*c*sum(y*exp(-b*x)*(-x))+2*a*c*sum(exp(-b*x)*(-x)),
+            2*c*sum(exp(-2*b*x))-2*sum(y*exp(-b*x))+2*a*sum(-b*x))
 # gradient at betavec
   Hess &lt;- matrix(c(2*n,
                     2*c*sum(exp(-b*x)*(-x)),
@@ -756,7 +758,7 @@ beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
 beta_trans_back(beta_trans_final)</code></pre>
 <pre><code>## Warning in log(betavec[3]): 产生了NaNs</code></pre>
 <pre><code>## Warning in log(a): 产生了NaNs</code></pre>
-<pre><code>## [1] -2.134451e-06 -6.896543e-02           NaN</code></pre>
+<pre><code>## [1] -0.23946022 -0.06086964         NaN</code></pre>
 </div>
 <div id="task2" class="section level2">
 <h2>Task2</h2>

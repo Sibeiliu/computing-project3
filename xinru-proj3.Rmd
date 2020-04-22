@@ -153,8 +153,10 @@ grad_hess <- function(dat, beta) {
   b = beta[2]
   c = beta[3]
   n = length(x)
-  target = sum(y^2)+n*a^2+c^2*sum(exp(-2*b*x))-2*a*sum(y)-2*c*sum(y*exp(-b*x))+2*a*c*sum(exp(-b*x))
-  grad <- c(2*n*a-2*sum(y)+2*c*sum(exp(-b*x)), c^2*sum(exp(-2*b*x)*(-2*x))-2*c*sum(y*exp(-b*x)*(-x))+2*a*c*sum(exp(-b*x)*(-x)), 2*c*sum(exp(-2*b*x))-2*sum(y*exp(-b*x))+2*a*sum(-b*x))
+  target = -(sum(y^2)+n*a^2+c^2*sum(exp(-2*b*x))-2*a*sum(y)-2*c*sum(y*exp(-b*x))+2*a*c*sum(exp(-b*x)))
+  grad <- c(2*n*a-2*sum(y)+2*c*sum(exp(-b*x)),
+            c^2*sum(exp(-2*b*x)*(-2*x))-2*c*sum(y*exp(-b*x)*(-x))+2*a*c*sum(exp(-b*x)*(-x)),
+            2*c*sum(exp(-2*b*x))-2*sum(y*exp(-b*x))+2*a*sum(-b*x))
 # gradient at betavec
   Hess <- matrix(c(2*n,
                     2*c*sum(exp(-b*x)*(-x)),
