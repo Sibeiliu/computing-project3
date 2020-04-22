@@ -9,6 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE,message=FALSE,warning=TRUE)
 library(tidyverse)
 library(ggplot2)
+library(MASS)
+library(mvtnorm)
+library(dplyr)
+
 ```
 
 data cleaning
@@ -16,10 +20,12 @@ data cleaning
 df.raw = read.csv("covid19-1.csv")
 df = df.raw %>% 
   janitor::clean_names() %>% 
-  select(country_region, province_state, date, confirmed_cases) %>% 
+  dplyr::select(country_region, province_state, date, confirmed_cases) %>% 
   filter(confirmed_cases != 0)
 
 region.index = levels(df$country_region)
+
+
 
 df.region = function(df, region) {
   df.r = df %>% 
@@ -28,14 +34,25 @@ df.region = function(df, region) {
     summarise(cases = sum(confirmed_cases)) %>% 
     mutate(formal_date = as.Date(date, '%m/%d/%Y')) %>% 
     mutate(time = as.numeric(formal_date-min(formal_date)))%>% 
-    arrange(time) %>% 
-    mutate(cul=cumsum(cases)) %>% 
-    dplyr::select(region = country_region, date, time, cases, cul)
+    arrange(time)  %>% 
+    dplyr::select(region = country_region, date, time, cases)
   df.r
 }
 
-df.afghanistan = df.region(df, region.index[1])
+i= 1
+df_list=vector("list", length = length(region.index))
+while(i < length(region.index)+1){
+  df_list[[i]]   = as.data.frame(df.region(df, region.index[i]))
+  print(i)
+  i = i+1
+}
+
+for (i in 1:length(df_list)){
+names(df_list)[i] <- region.index[i]
+}
 ```
+
+## method1
 
 ```{r}
 ## calculate y
@@ -47,7 +64,7 @@ f_log=function(betavec,t){
 ## calculate mse
 target <- function(dat,beta) {
   x = dat$time
-  y = dat$cul
+  y = dat$cases
   y_hat = f_log(beta,x)
   mse <- sum((y_hat-y)^2)
   return(mse)
@@ -56,7 +73,7 @@ target <- function(dat,beta) {
 ## fix b and c, calculate a
 fun_a = function(dat,beta){
   x = dat$time
-  y = dat$cul
+  y = dat$cases
   a = beta[1]
   b = beta[2]
   c = beta[3]
@@ -67,7 +84,7 @@ fun_a = function(dat,beta){
 ## calculate b and c
 fun_bc = function(dat,a){
   x = dat$time
-  y = dat$cul
+  y = dat$cases
   y_trans = log(a/y-1)
   lm1 = lm(y_trans~x)
   b =  b = -as.numeric(lm1$coefficients[2])
@@ -94,8 +111,174 @@ coordinate <- function(dat, start, tol=1e-10, maxiter = 200) {
   return(res)
 }
 
-ggplot(aes(x = time, y = cul),data = df.afghanistan) +
-  geom_point()
-
-corres <- coordinate(df.afghanistan, start = c(10000,1,40))
+corres <- coordinate(df_list$Afghanistan, start = c(1000,0.1,30))
 ```
+
+## method2
+
+```{r}
+## transform beta
+beta_trans = function(betavec) {
+  a = betavec[1]
+  b = betavec[2]
+  c = betavec[3]
+  a_trans = 1/a
+  c_trans = exp(b*c-log(a))
+  beta = c(a_trans, b, c_trans)
+  return(beta)
+}
+
+## transform data
+dat_trans = function(dat){
+  x = dat$time
+  y = dat$cases
+  y_trans = 1/y
+  dat_trans = as.data.frame(cbind(x,y_trans))
+  return(dat_trans)
+}
+
+beta_trans_back = function(betavec){
+  a = 1/betavec[1]
+  b = betavec[2]
+  c = (log(betavec[3])-log(a))/b
+  beta = c(a, b, c)
+  return(beta)
+}
+
+## using transformed data to calculate gradient and hess
+grad_hess <- function(dat, beta) {
+  x = dat$x
+  y = dat$y_trans
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  n = length(x)
+  target = sum(y^2)+n*a^2+c^2*sum(exp(-2*b*x))-2*a*sum(y)-2*c*sum(y*exp(-b*x))+2*a*c*sum(exp(-b*x))
+  grad <- c(2*n*a-2*sum(y)+2*c*sum(exp(-b*x)), c^2*sum(exp(-2*b*x)*(-2*x))-2*c*sum(y*exp(-b*x)*(-x))+2*a*c*sum(exp(-b*x)*(-x)), 2*c*sum(exp(-2*b*x))-2*sum(y*exp(-b*x))+2*a*sum(-b*x))
+# gradient at betavec
+  Hess <- matrix(c(2*n,
+                    2*c*sum(exp(-b*x)*(-x)),
+                    2*sum(exp(-b*x)),        
+                    2*c*sum(exp(-b*x)*(-x)),
+                    c^2*sum(exp(-2*b*x)*4*x^2)-2*c*sum(y*exp(-b*x)*x^2)+2*a*c*sum(exp(-b*x)*x^2),
+                    2*c*sum(exp(-2*b*x)*(-2*x))-2*sum(y*exp(-b*x)*(-x))+2*a*sum(exp(-b*x)*(-x)),
+                    2*sum(exp(-b*x)),
+                    2*c*sum(exp(-2*b*x)*(-2*x))-2*sum(y*exp(-b*x)*(-x))+2*a*sum(exp(-b*x)*(-x)),
+                    2*sum(exp(-2*b*x))), ncol=3, byrow = TRUE)
+  eigen_hess = eigen(Hess)$values
+# modified newtonpaphson to ensure ascent direction
+  if(eigen_hess[1]<0 && eigen_hess[2]<0 && eigen_hess[3]<0){
+    Hess = Hess
+  }else{
+    Hess = Hess-max(eigen_hess)*matrix(c(1,1,1,1,1,1,1,1,1),3,3)
+  }
+# Hessian at betavec
+  return(list(target = target, grad = grad, Hess = Hess))
+}
+
+## using transformed data to calculate optimal solution
+modified_NewtonRaphson <- function(dat,start, tol=1e-10,
+                               maxiter = 200) {
+  i <- 0
+  cur <- start
+  stuff <- grad_hess(dat,cur)
+  res <- c(0, stuff$target, cur)
+  prevtarget = Inf
+  l = 1
+  while(i < maxiter && abs(stuff$target - prevtarget) > tol)
+ {
+   i <- i + 1
+   prevtarget <- stuff$target
+   prev <- cur
+   cur <- prev - solve(stuff$Hess) %*% stuff$grad
+   stuff = grad_hess(dat,cur)
+# step-halfing
+   while(stuff$target <= prevtarget && l < 10){
+     cur <- prev - (1/(2^l))*solve(stuff$Hess) %*% stuff$grad
+     stuff = grad_hess(dat,cur)
+     l= l+1
+   }
+   res <- rbind(res, c(i, stuff$target, cur))# Add current values to results matrix
+ }
+  return(res)}
+
+
+## For example
+
+beta = beta_trans(c(1000,0.1,40))
+dat = dat_trans(df_list$Afghanistan)
+
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+```
+
+
+## Task2
+
+```{r}
+EM = function(data,ncluster){
+  data = as.matrix(data) %>% scale()
+  n = nrow(data)
+  q = ncol(data)
+  p_j = rep(1/ncluster,ncluster)
+  mu = data[sample(n,ncluster),] %>% as.matrix()
+  covmat = diag(ncol(data))
+  covlist = list()
+  for(i in 1:ncluster){
+    covlist[[i]] = covmat
+  }
+
+count = 1
+while(count <100){     
+  mu0 <- mu
+
+  # E-step: Evaluate posterior probability, gamma     
+  gamma <- c()     
+  for(j in 1:ncluster){       
+    gamma2 <- apply(data,1, dmvnorm, mean = mu[j,], sigma = covlist[[j]])       
+    gamma <- cbind(gamma, gamma2)     
+  }
+    
+   # M- step: Calculate mu     
+  tempmat <- matrix(rep(p_j,n),nrow=n,byrow = T)     
+  r <- (gamma * tempmat) / rowSums(gamma * tempmat)     
+  mu <- t(r) %*% data / colSums(r)
+  
+
+  # M- step: Calculate Sigma and p     
+  for(j in 1:ncluster){       
+    sigma <- matrix(rep(0,q^2),ncol=q)       
+    for(i in 1:n){         
+      sigma = sigma + r[i,j] * (data[i,]-mu0[j,]) %*% t(data[i,]-mu0[j,])       }       
+    covlist[[j]] <- sigma/sum(r[,j])     }    
+  p_j <- colSums(r)/n    
+  count = count + 1  }
+  
+  cluster <- which(r == apply(r, 1, max), arr.ind = T)   
+  cluster <- cluster[order(cluster[,1]),]   
+  return(list(mu = mu,covlist = covlist, p_j = p_j,cluster = cluster)) }
+```
+
+```{r}
+set.seed(123123)
+sigma = matrix(c(1,0.5,0.5,1),2,2)
+x1 = mvrnorm(n=200,mu=c(0,0),sigma)
+sigma = matrix(c(2,0.5,0.5,2),2,2)
+x2 = mvrnorm(n=200,mu=c(0,5),sigma)
+sigma = matrix(c(3,0.5,0.5,3),2,2)
+x3 = mvrnorm(n=200,mu=c(6,4),sigma)
+xx = rbind(x1,x2,x3)
+
+
+res2 = EM(xx,3)
+set.seed(20)
+clusters = kmeans(xx,3)
+clusternumbers = as.factor(clusters$cluster)
+plot(xx)
+points(xx[which(clusternumbers==1),],col=2)
+
+```
+
