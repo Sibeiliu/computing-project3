@@ -204,8 +204,10 @@ modified_NewtonRaphson <- function(dat,start, tol=1e-10,
    res <- rbind(res, c(i, stuff$target, cur))# Add current values to results matrix
  }
   return(res)}
+```
 
 
+```{r}
 ## For example
 
 beta = beta_trans(c(200000,0.1,50))
@@ -216,6 +218,7 @@ ans_mod = modified_NewtonRaphson(dat,beta)
 beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
 beta_trans_back(beta_trans_final)
 
+# another example
 dat_ori=df_list[[2]]
 a_orig=2.5*max(dat_ori$cases)
 beta = beta_trans(c(a_orig,0.1,40))
@@ -228,7 +231,30 @@ ans_mod = modified_NewtonRaphson(dat,beta)
 
 beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
 beta_trans_back(beta_trans_final)
+```
 
+
+```{r}
+## terrible results
+# function to find a b
+find_ab=function(y,x){
+  three_points=ceiling(quantile(1:length(x),probs = c(0.25, 0.5, 0.75)))
+  t=x[three_points]
+  y=y[three_points]
+  stuff=(y[1]/y[2])*(t[1]-t[2])/(t[2]-t[3])*(y[2]-y[3])/(y[1]-y[2])
+  a=(stuff*y[1]-y[2])/(stuff-1)
+  b=(1/y[1])*(y[1]-y[2])/(t[1]-t[2])*(1/(1-y[1]/a))
+  return(c(a,b))
+}
+#example
+y=df_list[[1]]$cases
+x=df_list[[1]]$time
+find_ab(df_list[[1]]$cases,df_list[[1]]$time)
+
+```
+
+
+```{r}
 res=NULL
 for(i in 1:length(df_list)){
 dat=df_list[[i]]
