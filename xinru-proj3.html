@@ -283,7 +283,7 @@ beta_trans = function(betavec) {
   b = betavec[2]
   c = betavec[3]
   a_trans = 1/a
-  c_trans = exp(b*c-log(a))
+  c_trans = b*c
   beta = c(a_trans, b, c_trans)
   return(beta)
 }
@@ -301,7 +301,7 @@ dat_trans = function(dat){
 beta_trans_back = function(betavec){
   a = 1/betavec[1]
   b = betavec[2]
-  c = (log(betavec[3])+log(a))/b
+  c = betavec[3]/b
   beta = c(a, b, c)
   return(beta)
 }
@@ -314,20 +314,22 @@ grad_hess &lt;- function(dat, beta) {
   b = beta[2]
   c = beta[3]
   n = length(x)
-  target = -(sum(y^2)+n*a^2+c^2*sum(exp(-2*b*x))-2*a*sum(y)-2*c*sum(y*exp(-b*x))+2*a*c*sum(exp(-b*x)))
-  grad &lt;- c(2*n*a-2*sum(y)+2*c*sum(exp(-b*x)),
-            c^2*sum(exp(-2*b*x)*(-2*x))-2*c*sum(y*exp(-b*x)*(-x))+2*a*c*sum(exp(-b*x)*(-x)),
-            2*c*sum(exp(-2*b*x))-2*sum(y*exp(-b*x))+2*a*sum(-b*x))
+  p = exp(-b*x+c)
+  target = -sum((y-(a+a*p))^2)
+  grad &lt;- -c(2*n*a+2*a*sum(p^2)-2*sum(y)-2*sum(y*p)+4*a*sum(p),
+            a^2*sum(p^2*(-2*x))-2*a*sum(y*p*(-x))+2*a^2*sum(p*(-x)),
+            2*a^2*sum(p^2)-2*a*sum(y*p)+2*a^2*sum(p))
 # gradient at betavec
-  Hess &lt;- matrix(c(2*n,
-                    2*c*sum(exp(-b*x)*(-x)),
-                    2*sum(exp(-b*x)),        
-                    2*c*sum(exp(-b*x)*(-x)),
-                    c^2*sum(exp(-2*b*x)*4*x^2)-2*c*sum(y*exp(-b*x)*x^2)+2*a*c*sum(exp(-b*x)*x^2),
-                    2*c*sum(exp(-2*b*x)*(-2*x))-2*sum(y*exp(-b*x)*(-x))+2*a*sum(exp(-b*x)*(-x)),
-                    2*sum(exp(-b*x)),
-                    2*c*sum(exp(-2*b*x)*(-2*x))-2*sum(y*exp(-b*x)*(-x))+2*a*sum(exp(-b*x)*(-x)),
-                    2*sum(exp(-2*b*x))), ncol=3, byrow = TRUE)
+  Hess &lt;- -matrix(c(2*n+2*sum(exp(-2*b*x+2*c))+4*sum(p),
+                    2*a*sum(p^2*(-2*x))-2*sum(y*p*(-x))+4*a*sum(p*(-x)),
+                    4*a*sum(p^2)-2*sum(y*p)+4*a*sum(p), 
+                    2*a*sum(p^2*(-2*x))-2*sum(y*p*(-x))+4*a*sum(p*(-x)),
+                    a^2*sum(p^2*((-2*x)^2))-2*a*sum(y*p*x^2)+2*a^2*sum(p*x^2),
+                    a^2*sum(p^2*(-4*x))-2*a*sum(y*p*(-x))+2*a*sum(p*(-x)),
+                    4*a*sum(p^2)-2*sum(y*p)+4*a*sum(p), 
+                    a^2*sum(p^2*(-4*x))-2*a*sum(y*p*(-x))+2*a*sum(p*(-x)),
+                    4*a^2*sum(p^2)-2*a*sum(y*p)+2*a^2*sum(p)),
+                    ncol=3, byrow = TRUE)
   eigen_hess = eigen(Hess)$values
 # modified newtonpaphson to ensure ascent direction
   if(eigen_hess[1]&lt;0 &amp;&amp; eigen_hess[2]&lt;0 &amp;&amp; eigen_hess[3]&lt;0){
@@ -357,7 +359,8 @@ modified_NewtonRaphson &lt;- function(dat,start, tol=1e-10,
    stuff = grad_hess(dat,cur)
 # step-halfing
    while(stuff$target &lt;= prevtarget &amp;&amp; l &lt; 1000){
-     cur &lt;- prev - (1/(2^l))*solve(stuff$Hess) %*% stuff$grad
+     stuff_orig = grad_hess(dat,prev)
+     cur &lt;- prev - (1/(2^l))*solve(stuff_orig$Hess) %*% stuff_orig$grad
      stuff = grad_hess(dat,cur)
      l= l+1
    }
@@ -368,15 +371,14 @@ modified_NewtonRaphson &lt;- function(dat,start, tol=1e-10,
 
 ## For example
 
-beta = beta_trans(c(1000,0.2,50))
-dat = dat_trans(df_list$Afghanistan)
+beta = beta_trans(c(100000,0.2,30))
+dat = dat_trans(df_list$China)
 
 ans_mod = modified_NewtonRaphson(dat,beta)
 
 beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
 beta_trans_back(beta_trans_final)</code></pre>
-<pre><code>## Warning in log(a): 产生了NaNs</code></pre>
-<pre><code>## [1] -1.976526  0.305643       NaN</code></pre>
+<pre><code>## [1] 2.371586e+05 2.209942e-01 2.715105e+01</code></pre>
 </div>
 <div id="task2" class="section level2">
 <h2>Task2</h2>
