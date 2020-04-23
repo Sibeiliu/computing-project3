@@ -208,7 +208,7 @@ modified_NewtonRaphson <- function(dat,start, tol=1e-10,
 
 ## For example
 
-beta = beta_trans(c(100000,0.2,30))
+beta = beta_trans(c(200000,0.1,50))
 dat = dat_trans(df_list$China)
 
 ans_mod = modified_NewtonRaphson(dat,beta)
@@ -216,6 +216,31 @@ ans_mod = modified_NewtonRaphson(dat,beta)
 beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
 beta_trans_back(beta_trans_final)
 
+dat_ori=df_list[[2]]
+a_orig=2.5*max(dat_ori$cases)
+beta = beta_trans(c(a_orig,0.1,40))
+dat = dat_trans(dat_ori)
+
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+res=NULL
+for(i in 1:length(df_list)){
+dat=df_list[[i]]
+a_orig=3*max(dat$cases)
+beta = beta_trans(c(a_orig,0.1,45))
+dat = dat_trans(dat)
+ans_mod = modified_NewtonRaphson(dat,beta)
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_back = beta_trans_back(beta_trans_final)
+res=rbind(res,c(region_index[i],beta_back))
+print(i)
+}
 ```
 
 
