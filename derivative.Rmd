@@ -1,0 +1,103 @@
+---
+title: "derivative"
+author: "Qi Yuchen, yq2279"
+date: "2020/4/23"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stats)
+library(matrixcalc)
+library(pracma)
+library(qpcR)
+library(pspline)
+library(patchwork)
+```
+
+## data import and cleaning
+
+```{r}
+df.raw = read.csv("covid19-1.csv")
+df = df.raw %>% 
+  janitor::clean_names() %>% 
+  dplyr::select(country_region, province_state, date, confirmed_cases) %>% 
+  filter(confirmed_cases != 0)
+
+region.index = levels(df$country_region)
+
+# first step to write a function
+df.china = df %>% 
+  filter(country_region == region.index[30]) %>% 
+  group_by(country_region, date) %>% 
+  summarise(cases = sum(confirmed_cases)) %>% 
+  mutate(formal_date = as.numeric(as.character(as.Date(date, '%m/%d/%Y'), format="%Y%m%d"))) %>% 
+  mutate(time = formal_date-min(formal_date)) %>% 
+  dplyr::select(region = country_region, date, time, cases) %>% 
+  arrange(time)
+
+# function to get data for a specific region
+df.region = function(df, region) {
+  df.r = df %>% 
+    filter(country_region == region) %>% 
+    group_by(country_region, date) %>% 
+    summarise(cases = sum(confirmed_cases)) %>% 
+    mutate(formal_date = as.numeric(as.character(as.Date(date, '%m/%d/%Y'), format="%Y%m%d"))) %>% 
+    mutate(time = formal_date-min(formal_date)) %>% 
+    dplyr::select(region = country_region, date, time, cases) %>% 
+    arrange(time)
+  
+  df.r
+}
+
+
+df.china = df.region(df, region.index[30])
+
+df.fewer = df %>% 
+  filter()
+```
+
+## analyze
+
+Afghanistan
+
+```{r}
+df.test = df.region(df, region.index[1])
+
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point() + ylim(0, 80)
+smooth.fit = smooth.Pspline(x = df.test$time, y = df.test$cases,df=6, method=2)
+
+f0 = predict(smooth.fit, df.test$time, nderiv=0)
+f1 = predict(smooth.fit, df.test$time, nderiv=1)
+p2 =  ggplot(mapping = aes(x = df.test$time, y = f0)) + geom_point()
+p1 + p2
+plot(x = df.test$cases, y = f1)
+
+# select two points to fit a polynomial degree = 2 and through (0,0)
+resp = c(5.55469920,6.96920923) # from f1
+pred = c(24,74) # from df.test$cases
+y1 = pred[1];y2 = pred[2]
+y1d = resp[1]; y2d = resp[2]
+a = (y2d*y1^2 - y1d*y2^2) / (y2d*y1 - y1d*y2)
+b = y1d/(y1*(1-y1/a))
+c = 99.5
+beta = c(a,b,c)
+
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  a/(1+exp(-b*(t-c)))
+}
+
+ybar = f.logit(c(109,0.4,99), df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 0.5) + ylim(0, 80) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 0.5) + ylim(0, 80)
+p1+p3
+```
+
+
+
