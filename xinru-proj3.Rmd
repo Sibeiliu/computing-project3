@@ -22,7 +22,14 @@ df = df.raw %>%
   janitor::clean_names() %>% 
   dplyr::select(country_region, province_state, date, confirmed_cases) %>% 
   filter(confirmed_cases != 0)
-region_index = as.character(unique(df$country_region))
+
+# region with confirm case > 20
+df_country = df %>% 
+  group_by(country_region) %>% 
+  summarise(max=max(confirmed_cases)) %>% 
+  filter(max > 20)
+
+region_index = as.character(unique(df_country$country_region))
 
 df.region = function(df, region) {
   df.r = df %>% 
@@ -227,6 +234,121 @@ dat = dat_trans(dat_ori)
 ggplot(aes(x=time,y=cases),data=dat_ori)+
   geom_point()
 
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+## 1-29
+dat_ori=df_list[[1]]
+
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+
+beta = beta_trans(c(200,0.2,30))
+dat = dat_trans(dat_ori)
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+
+dat_ori=df_list[[2]]
+
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+
+beta = beta_trans(c(300,0.2,30))
+dat = dat_trans(dat_ori)
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+dat_ori=df_list[[3]]
+
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+
+beta = beta_trans(c(3000,0.3,30))
+dat = dat_trans(dat_ori)
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+dat_ori=df_list[[4]]
+
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+
+beta = beta_trans(c(3000,0.3,30))
+dat = dat_trans(dat_ori)
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+dat_ori=df_list[[5]]
+
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+
+beta = beta_trans(c(3000,0.3,30))
+dat = dat_trans(dat_ori)
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+dat_ori=df_list[[6]]
+
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+
+beta = beta_trans(c(3000,0.3,30))
+dat = dat_trans(dat_ori)
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+dat_ori=df_list[[7]]
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+
+beta = beta_trans(c(80000,0.3,50))
+dat = dat_trans(dat_ori)
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+dat_ori=df_list[[8]]
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+beta = beta_trans(c(80000,0.3,50))
+dat = dat_trans(dat_ori)
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+dat_ori=df_list[[9]]
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+beta = beta_trans(c(200,0.2,30))
+dat = dat_trans(dat_ori)
+ans_mod = modified_NewtonRaphson(dat,beta)
+
+beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
+beta_trans_back(beta_trans_final)
+
+dat_ori=df_list[[10]]
+ggplot(aes(x=time,y=cases),data=dat_ori)+
+  geom_point()
+beta = beta_trans(c(1000,0.08,30))
+dat = dat_trans(dat_ori)
 ans_mod = modified_NewtonRaphson(dat,beta)
 
 beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
