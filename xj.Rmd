@@ -29,7 +29,7 @@ df2 <-
 regions <-
   df2 %>% 
   summarise(max = max(case)) %>% 
-  filter(max > 7) %>%
+  filter(max > 20) %>%
   .$`Country/Region`
 
 # data for analysis
