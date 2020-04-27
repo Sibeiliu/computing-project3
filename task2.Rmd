@@ -75,6 +75,10 @@ sum((res[,4])<all_t[,1])# total country pass the mid point
 
 
 names=res[which((res[,4])<all_t[,1]),1]# names of those country
+
+res[which.min(unlist(res[,3])%>% as.vector()),c(1,3)] # name of country who has most flat grouth rate
+
+res[which.max(unlist(res[,3])%>% as.vector()),c(1,3)] # name of country who has greatest grouth rate
 ```
 
 
@@ -90,6 +94,57 @@ dat_ori=df_list[[i]]
 plot(dat_ori$time,dat_ori$cases)
 lines(dat_ori$time,f.logit(unlist(res[i,2:4]) %>%as.vector() ,dat_ori$time))}
 ```
+
+gain some data to predict
+```{r}
+##Afghanistan
+data_try=df_list[[1]]
+frame=as.tibble(
+  x=seq(1,100,by=1)) %>% mutate(
+  y=f.logit(unlist(res[1,2:4]) %>% as.vector(),value)
+)
+
+ggplot()+geom_line(frame,mapping = aes(x=value,y=y),color='red')+
+  geom_point(data_try,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "Afghanistan predicted curve",x="Days since first case",y="Cumulative cases")
+##China
+
+data_try2=df_list$China
+frame2=as.tibble(
+  x=seq(1,200,by=1)) %>% mutate(
+  y=f.logit(unlist(res[which(region_index=="China"),2:4]) %>% as.vector(),value)
+)
+
+ggplot()+geom_line(frame2,mapping = aes(x=value,y=y),color='red')+
+  geom_point(data_try2,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "China predicted curve since first case",x="Days since first case",y="Cumulative cases")
+
+## US
+data_try3=df_list$US
+frame3=as.tibble(
+  x=seq(1,200,by=1)) %>% mutate(
+  y=f.logit(unlist(res[which(region_index=="US"),2:4]) %>% as.vector(),value)
+)
+
+ggplot()+geom_line(frame3,mapping = aes(x=value,y=y),color='red')+
+  geom_point(data_try3,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "US predicted curve since first case",x="Days since first case",y="Cumulative cases")
+
+##Korea
+
+data_try4=df_list$`Korea, South`
+frame4=as.tibble(
+  x=seq(1,200,by=1)) %>% mutate(
+  y=f.logit(unlist(res[which(region_index=="Korea, South"),2:4]) %>% as.vector(),value)
+)
+
+ggplot()+geom_line(frame4,mapping = aes(x=value,y=y),color='red')+
+  geom_point(data_try4,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "South Korea predicted curve since first case",x="Days since first case",y="Cumulative cases")
+
+```
+
+## predict data 
+```{r}
+x3_35=read_csv("03-25-2020.csv.txt")
+```
+
 
 
 

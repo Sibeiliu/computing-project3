@@ -117,4 +117,8 @@ rename(country_region = V1,
 write.csv(res, "abc_values")
 ```
 
+# gain some data to do prediction
+```{r}
+
+```
 
