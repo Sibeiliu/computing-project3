@@ -85,10 +85,10 @@ f.logit=function(beta, t){
   c = beta[3]
   return(a/(1+exp(-b*(t-c))))
 }
-
-dat_ori=df_list[[1]]
+for(i in 1:length(df_list)){
+dat_ori=df_list[[i]]
 plot(dat_ori$time,dat_ori$cases)
-lines(dat_ori$time,f.logit(res[1,2:4] %>% ,dat_ori$time))
+lines(dat_ori$time,f.logit(unlist(res[i,2:4]) %>%as.vector() ,dat_ori$time))}
 ```
 
 
