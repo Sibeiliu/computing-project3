@@ -142,7 +142,7 @@ while(count <100){
 ```{r}
 em_dat = res %>% dplyr::select(-country_region) 
 
-res2 = EM(em_dat,5)
+res2 = EM(em_dat,2)
 res3=res2$mu %>% 
   as.data.frame()
 
@@ -150,5 +150,29 @@ res2 = res2$cluster %>% as.data.frame()
 
 clusters = kmeans(em_dat,5)
 clusternumbers = as.factor(clusters$cluster)
+```
+
+
+```{r}
+library(factoextra)
+#fviz_cluster(clusters, data = em_dat,choose.vars=c("a_value","b_value","c_value"))
+set.seed(123)
+
+
+## use wss
+fviz_nbclust(em_dat, kmeans, method = "wss",k.max = 15)
+
+## use silhouette
+fviz_nbclust(em_dat, kmeans, method = "silhouette",k.max=15)
+
+## use Gap Statistic Method
+library(cluster)
+set.seed(123)
+gap_stat <- clusGap(em_dat, FUN = kmeans, nstart = 25,
+                    K.max = 10, B = 50)
+fviz_gap_stat(gap_stat)
+
+
+## seems 2 cluster would be a better choice
 ```
 
