@@ -77,6 +77,22 @@ sum((res[,4])<all_t[,1])# total country pass the mid point
 names=res[which((res[,4])<all_t[,1]),1]# names of those country
 ```
 
+
+```{r}
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  return(a/(1+exp(-b*(t-c))))
+}
+
+dat_ori=df_list[[1]]
+plot(dat_ori$time,dat_ori$cases)
+lines(dat_ori$time,f.logit(res[1,2:4] %>% ,dat_ori$time))
+```
+
+
+
 ## Task2
 
 ```{r}
