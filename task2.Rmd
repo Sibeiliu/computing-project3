@@ -1,0 +1,178 @@
+---
+title: "task2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(MASS)
+library(mvtnorm)
+library(dplyr)
+library(qrnn)
+library(tidyverse)
+library(stats)
+library(matrixcalc)
+library(pracma)
+```
+
+## data cleaning
+
+```{r}
+df.raw = read.csv("covid19-1.csv")
+df = df.raw %>% 
+  janitor::clean_names() %>% 
+  dplyr::select(country_region, province_state, date, confirmed_cases) %>% 
+  filter(confirmed_cases != 0)
+
+# region with confirm case > 20
+df_country = df %>% 
+  group_by(country_region) %>% 
+  summarise(max=max(confirmed_cases)) %>% 
+  filter(max > 20)
+
+region_index = as.character(unique(df_country$country_region))
+
+df.region = function(df, region) {
+  df.r = df %>% 
+    filter(country_region == region) %>% 
+    group_by(country_region, date) %>% 
+    summarise(cases = sum(confirmed_cases)) %>% 
+    mutate(formal_date = as.Date(date, '%m/%d/%Y')) %>% 
+    mutate(time = as.numeric(formal_date-min(formal_date)))%>% 
+    arrange(time)  %>% 
+    dplyr::select(region = country_region, date, time, cases)
+  df.r
+}
+
+i= 1
+df_list=vector("list", length = length(region_index))
+while(i < length(region_index)+1){
+  df_list[[i]]   = df.region(df, region_index[i])
+  i = i+1
+}
+
+for (i in 1:length(df_list)){
+names(df_list)[i] <- region_index[i]
+}
+
+```
+
+```{r}
+res = read_csv("./abc_values") %>% 
+  dplyr::select(-X1) %>% 
+  mutate(
+    a_value = round(a_value,0),
+    b_value = round(b_value,3),
+    c_value = round(c_value,0)
+  ) 
+all_t=NULL
+for(c in 1:length(df_list))
+all_t=rbind(all_t,df_list[[c]][nrow(df_list[[c]]),3])
+
+sum((res[,4])<all_t[,1])# total country pass the mid point
+
+
+names=res[which((res[,4])<all_t[,1]),1]# names of those country
+```
+
+
+```{r}
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  return(a/(1+exp(-b*(t-c))))
+}
+for(i in 1:length(df_list)){
+dat_ori=df_list[[i]]
+plot(dat_ori$time,dat_ori$cases)
+lines(dat_ori$time,f.logit(unlist(res[i,2:4]) %>%as.vector() ,dat_ori$time))}
+```
+
+
+
+## Task2
+
+```{r}
+EM = function(data,ncluster){
+  data = as.matrix(data) %>% scale()
+  n = nrow(data)
+  q = ncol(data)
+  p_j = rep(1/ncluster,ncluster)
+  mu = data[sample(n,ncluster),] %>% as.matrix()
+  covmat = diag(ncol(data))
+  covlist = list()
+  for(i in 1:ncluster){
+    covlist[[i]] = covmat
+  }
+
+count = 1
+while(count <100){     
+  mu0 <- mu
+
+  # E-step: Evaluate posterior probability, gamma     
+  gamma <- c()     
+  for(j in 1:ncluster){       
+    gamma2 <- apply(data,1, dmvnorm, mean = mu[j,], sigma = covlist[[j]])       
+    gamma <- cbind(gamma, gamma2)     
+  }
+    
+   # M- step: Calculate mu     
+  tempmat <- matrix(rep(p_j,n),nrow=n,byrow = T)     
+  r <- (gamma * tempmat) / rowSums(gamma * tempmat)     
+  mu <- t(r) %*% data / colSums(r)
+  
+
+  # M- step: Calculate Sigma and p     
+  for(j in 1:ncluster){       
+    sigma <- matrix(rep(0,q^2),ncol=q)       
+    for(i in 1:n){         
+      sigma = sigma + r[i,j] * (data[i,]-mu0[j,]) %*% t(data[i,]-mu0[j,])       }       
+    covlist[[j]] <- sigma/sum(r[,j])     }    
+  p_j <- colSums(r)/n    
+  count = count + 1  }
+  
+  cluster <- which(r == apply(r, 1, max), arr.ind = T)   
+  cluster <- cluster[order(cluster[,1]),]   
+  return(list(mu = mu,covlist = covlist, p_j = p_j,cluster = cluster)) }
+```
+
+```{r}
+em_dat = res %>% dplyr::select(-country_region) 
+
+res2 = EM(em_dat,2)
+res3=res2$mu %>% 
+  as.data.frame()
+
+res2 = res2$cluster %>% as.data.frame() 
+
+clusters = kmeans(em_dat,5)
+clusternumbers = as.factor(clusters$cluster)
+```
+
+
+```{r}
+library(factoextra)
+#fviz_cluster(clusters, data = em_dat,choose.vars=c("a_value","b_value","c_value"))
+set.seed(123)
+
+
+## use wss
+fviz_nbclust(em_dat, kmeans, method = "wss",k.max = 15)
+
+## use silhouette
+fviz_nbclust(em_dat, kmeans, method = "silhouette",k.max=15)
+
+## use Gap Statistic Method
+library(cluster)
+set.seed(123)
+gap_stat <- clusGap(em_dat, FUN = kmeans, nstart = 25,
+                    K.max = 10, B = 50)
+fviz_gap_stat(gap_stat)
+
+
+## seems 2 cluster would be a better choice
+```
+

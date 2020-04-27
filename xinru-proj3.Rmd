@@ -12,7 +12,11 @@ library(ggplot2)
 library(MASS)
 library(mvtnorm)
 library(dplyr)
-
+library(qrnn)
+library(tidyverse)
+library(stats)
+library(matrixcalc)
+library(pracma)
 ```
 
 data cleaning
@@ -56,322 +60,40 @@ names(df_list)[i] <- region_index[i]
 
 ```
 
-## method1
+## adam
 
 ```{r}
-## calculate y
-f_log=function(betavec,t){
-  y = betavec[1]/(1+exp(-betavec[2]*(t-betavec[3])))
-  return(y)
-}
-
-## calculate mse
-target <- function(dat,beta) {
+grad = function(dat,theta){
+  a = theta[1]
+  b = theta[2]
+  c = theta[3]
   x = dat$time
   y = dat$cases
-  y_hat = f_log(beta,x)
-  mse <- sum((y_hat-y)^2)
-  return(mse)
+  a_out = sum(2*a/(1+exp(-b*(x-c)))^2-2*y/(1+exp(-b*(x-c))))
+  b_out = sum(2*a^2*(x-c)*exp(-b*(x-c))/(1+exp(-b*(x-c)))^3+2*a*(c-x)*y*exp(-b*(x-c))/(1+exp(-b*(x-c)))^2)
+  c_out = sum(-2*a^2*b*exp(-b*(x-c))/(1+exp(-b*(x-c)))^3+2*a*b*y*exp(-b*(x-c))/(1+exp(-b*(x-c)))^2)
+  grad_value = c(a_out,b_out,c_out)
+  return(grad_value)
 }
 
-## fix b and c, calculate a
-fun_a = function(dat,beta){
-  x = dat$time
-  y = dat$cases
-  a = beta[1]
-  b = beta[2]
-  c = beta[3]
-  e = 1+exp(-b*x+b*c)
-  a = sum(y/e)/sum(1/e^2)
-}
-
-## calculate b and c
-fun_bc = function(dat,a){
-  x = dat$time
-  y = dat$cases
-  y_trans = log(a/y-1)
-  lm1 = lm(y_trans~x)
-  b =  b = -as.numeric(lm1$coefficients[2])
-  c =  as.numeric(lm1$coefficients[1])/b
-  betavec = c(a,b,c)
-  return(betavec)
-}
-
-## coordinatewise
-coordinate <- function(dat, start, tol=1e-10, maxiter = 200) {
-  i <- 0
-  betavec <- start
-  target <- target(dat,betavec)
-  res <- c(0, target, betavec)
-  prevtarget <- -Inf 
-  while(i < maxiter && abs(target - prevtarget) > tol) {
-    i <- i + 1 
-    prevtarget <- target
-    prev <- betavec
-    a = fun_a(dat,prev)
-    betavec = fun_bc(dat,a)
-    target = target(dat,betavec)
-    res <- rbind(res, c(i, target, betavec))}  
-  return(res)
-}
-
-corres <- coordinate(df_list$Afghanistan, start = c(1000,0.1,30))
-```
-
-## method2
-
-```{r}
-## transform beta
-beta_trans = function(betavec) {
-  a = betavec[1]
-  b = betavec[2]
-  c = betavec[3]
-  a_trans = 1/a
-  c_trans = b*c
-  beta = c(a_trans, b, c_trans)
-  return(beta)
-}
-
-## transform data
-dat_trans = function(dat){
-  dat = as.data.frame(dat)
-  x = dat$time
-  y = dat$cases
-  y_trans = 1/y
-  dat_trans = as.data.frame(cbind(x,y_trans))
-  return(dat_trans)
-}
-
-beta_trans_back = function(betavec){
-  a = 1/betavec[1]
-  b = betavec[2]
-  c = betavec[3]/b
-  beta = c(a, b, c)
-  return(beta)
-}
-
-## using transformed data to calculate gradient and hess
-grad_hess <- function(dat, beta) {
-  x = dat$x
-  y = dat$y_trans
-  a = beta[1]
-  b = beta[2]
-  c = beta[3]
-  n = length(x)
-  p = exp(-b*x+c)
-  target = -sum((y-(a+a*p))^2)
-  grad <- -c(2*n*a+2*a*sum(p^2)-2*sum(y)-2*sum(y*p)+4*a*sum(p),
-            a^2*sum(p^2*(-2*x))-2*a*sum(y*p*(-x))+2*a^2*sum(p*(-x)),
-            2*a^2*sum(p^2)-2*a*sum(y*p)+2*a^2*sum(p))
-# gradient at betavec
-  Hess <- -matrix(c(2*n+2*sum(exp(-2*b*x+2*c))+4*sum(p),
-                    2*a*sum(p^2*(-2*x))-2*sum(y*p*(-x))+4*a*sum(p*(-x)),
-                    4*a*sum(p^2)-2*sum(y*p)+4*a*sum(p), 
-                    2*a*sum(p^2*(-2*x))-2*sum(y*p*(-x))+4*a*sum(p*(-x)),
-                    a^2*sum(p^2*((-2*x)^2))-2*a*sum(y*p*x^2)+2*a^2*sum(p*x^2),
-                    a^2*sum(p^2*(-4*x))-2*a*sum(y*p*(-x))+2*a*sum(p*(-x)),
-                    4*a*sum(p^2)-2*sum(y*p)+4*a*sum(p), 
-                    a^2*sum(p^2*(-4*x))-2*a*sum(y*p*(-x))+2*a*sum(p*(-x)),
-                    4*a^2*sum(p^2)-2*a*sum(y*p)+2*a^2*sum(p)),
-                    ncol=3, byrow = TRUE)
-  eigen_hess = eigen(Hess)$values
-# modified newtonpaphson to ensure ascent direction
-  if(eigen_hess[1]<0 && eigen_hess[2]<0 && eigen_hess[3]<0){
-    Hess = Hess
-  }else{
-    Hess = Hess-max(eigen_hess)*matrix(c(1,1,1,1,1,1,1,1,1),3,3)
+   
+adam_self=function(dat,theta,alpha=0.001,t=0,beta1=0.9,beta2=0.999,e=10^(-8)){
+    pre=Inf
+    mt = 0
+    vt = 0
+    l = 0
+  while(sum((pre-theta)^2)>e && l<2*10^5){
+    pre=theta
+    t=t+1
+    gt=grad(dat, theta)
+    mt=beta1*mt+(1-beta1)*gt
+    vt=beta2*vt+(1-beta2)*(gt^2)
+    mt_hat=mt/(1-beta1^t)
+    vt_hat=vt/(1-beta2^t)
+    theta=pre-alpha*mt_hat/(sqrt(vt_hat)+e)
+    l = l+1
   }
-# Hessian at betavec
-  return(list(target = target, grad = grad, Hess = Hess))
-}
-
-## using transformed data to calculate optimal solution
-modified_NewtonRaphson <- function(dat,start, tol=1e-10,
-                               maxiter = 200) {
-  i <- 0
-  cur <- start
-  stuff <- grad_hess(dat,cur)
-  res <- c(0, stuff$target, cur)
-  prevtarget = Inf
-  l = 1
-  while(i < maxiter && abs(stuff$target - prevtarget) > tol)
- {
-   i <- i + 1
-   prevtarget <- stuff$target
-   prev <- cur
-   cur <- prev - solve(stuff$Hess) %*% stuff$grad
-   stuff = grad_hess(dat,cur)
-# step-halfing
-   while(stuff$target <= prevtarget && l < 1000){
-     stuff_orig = grad_hess(dat,prev)
-     cur <- prev - (1/(2^l))*solve(stuff_orig$Hess) %*% stuff_orig$grad
-     stuff = grad_hess(dat,cur)
-     l= l+1
-   }
-   res <- rbind(res, c(i, stuff$target, cur))# Add current values to results matrix
- }
-  return(res)}
-```
-
-
-```{r}
-## For example
-
-beta = beta_trans(c(200000,0.1,50))
-dat = dat_trans(df_list$China)
-
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-# another example
-dat_ori=df_list[[2]]
-a_orig=2.5*max(dat_ori$cases)
-beta = beta_trans(c(a_orig,0.1,40))
-dat = dat_trans(dat_ori)
-
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-## 1-29
-dat_ori=df_list[[1]]
-
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-
-beta = beta_trans(c(200,0.2,30))
-dat = dat_trans(dat_ori)
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-
-dat_ori=df_list[[2]]
-
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-
-beta = beta_trans(c(300,0.2,30))
-dat = dat_trans(dat_ori)
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-dat_ori=df_list[[3]]
-
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-
-beta = beta_trans(c(3000,0.3,30))
-dat = dat_trans(dat_ori)
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-dat_ori=df_list[[4]]
-
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-
-beta = beta_trans(c(3000,0.3,30))
-dat = dat_trans(dat_ori)
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-dat_ori=df_list[[5]]
-
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-
-beta = beta_trans(c(3000,0.3,30))
-dat = dat_trans(dat_ori)
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-dat_ori=df_list[[6]]
-
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-
-beta = beta_trans(c(3000,0.3,30))
-dat = dat_trans(dat_ori)
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-dat_ori=df_list[[7]]
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-
-beta = beta_trans(c(80000,0.3,50))
-dat = dat_trans(dat_ori)
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-dat_ori=df_list[[8]]
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-beta = beta_trans(c(80000,0.3,50))
-dat = dat_trans(dat_ori)
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-dat_ori=df_list[[9]]
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-beta = beta_trans(c(200,0.2,30))
-dat = dat_trans(dat_ori)
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-
-dat_ori=df_list[[10]]
-ggplot(aes(x=time,y=cases),data=dat_ori)+
-  geom_point()
-beta = beta_trans(c(1000,0.08,30))
-dat = dat_trans(dat_ori)
-ans_mod = modified_NewtonRaphson(dat,beta)
-
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_trans_back(beta_trans_final)
-```
-
-
-```{r}
-## terrible results
-# function to find a b
-find_ab=function(y,x){
-  three_points=ceiling(quantile(1:length(x),probs = c(0.25, 0.5, 0.75)))
-  t=x[three_points]
-  y=y[three_points]
-  stuff=(y[1]/y[2])*(t[1]-t[2])/(t[2]-t[3])*(y[2]-y[3])/(y[1]-y[2])
-  a=(stuff*y[1]-y[2])/(stuff-1)
-  b=(1/y[1])*(y[1]-y[2])/(t[1]-t[2])*(1/(1-y[1]/a))
-  return(c(a,b))
-}
-#example
-y=df_list[[1]]$cases
-x=df_list[[1]]$time
-find_ab(df_list[[1]]$cases,df_list[[1]]$time)
+    return(theta)}
 
 ```
 
@@ -380,96 +102,19 @@ find_ab(df_list[[1]]$cases,df_list[[1]]$time)
 res=NULL
 for(i in 1:length(df_list)){
 dat=df_list[[i]]
-a_orig=3*max(dat$cases)
-beta = beta_trans(c(a_orig,0.1,45))
-dat = dat_trans(dat)
-ans_mod = modified_NewtonRaphson(dat,beta)
-beta_trans_final=ans_mod[length(ans_mod[,1]),3:5]
-beta_back = beta_trans_back(beta_trans_final)
-res=rbind(res,c(region_index[i],beta_back))
-
+a_orig=2*max(dat$cases)
+beta = c(a_orig,0.3,40)
+ans_mod = adam_self(dat,beta)
+res=rbind(res,c(region_index[i],ans_mod))
+print(i)
 }
-print(res)
+
+res = res %>% as.data.frame() %>% 
+rename(country_region = V1,
+       a_value = V2,
+       b_value = V3,
+       c_value = V4) 
+write.csv(res, "abc_values")
 ```
 
-
-```{r}
-all_t=NULL
-for( c in 1:length(df_list))
-all_t=rbind(all_t,df_list[[c]][nrow(df_list[[c]]),3])
-
-sum((res[,4] %>% as.numeric())>all_t[,1])# total country pass the mid point
-
-
-names=res[which((res[,4] %>% as.numeric())>all_t[,1]),1]# names of those country
-```
-
-
-## Task2
-
-```{r}
-EM = function(data,ncluster){
-  data = as.matrix(data) %>% scale()
-  n = nrow(data)
-  q = ncol(data)
-  p_j = rep(1/ncluster,ncluster)
-  mu = data[sample(n,ncluster),] %>% as.matrix()
-  covmat = diag(ncol(data))
-  covlist = list()
-  for(i in 1:ncluster){
-    covlist[[i]] = covmat
-  }
-
-count = 1
-while(count <100){     
-  mu0 <- mu
-
-  # E-step: Evaluate posterior probability, gamma     
-  gamma <- c()     
-  for(j in 1:ncluster){       
-    gamma2 <- apply(data,1, dmvnorm, mean = mu[j,], sigma = covlist[[j]])       
-    gamma <- cbind(gamma, gamma2)     
-  }
-    
-   # M- step: Calculate mu     
-  tempmat <- matrix(rep(p_j,n),nrow=n,byrow = T)     
-  r <- (gamma * tempmat) / rowSums(gamma * tempmat)     
-  mu <- t(r) %*% data / colSums(r)
-  
-
-  # M- step: Calculate Sigma and p     
-  for(j in 1:ncluster){       
-    sigma <- matrix(rep(0,q^2),ncol=q)       
-    for(i in 1:n){         
-      sigma = sigma + r[i,j] * (data[i,]-mu0[j,]) %*% t(data[i,]-mu0[j,])       }       
-    covlist[[j]] <- sigma/sum(r[,j])     }    
-  p_j <- colSums(r)/n    
-  count = count + 1  }
-  
-  cluster <- which(r == apply(r, 1, max), arr.ind = T)   
-  cluster <- cluster[order(cluster[,1]),]   
-  return(list(mu = mu,covlist = covlist, p_j = p_j,cluster = cluster)) }
-
-
-```
-
-```{r}
-set.seed(123123)
-sigma = matrix(c(1,0.5,0.5,1),2,2)
-x1 = mvrnorm(n=200,mu=c(0,0),sigma)
-sigma = matrix(c(2,0.5,0.5,2),2,2)
-x2 = mvrnorm(n=200,mu=c(0,5),sigma)
-sigma = matrix(c(3,0.5,0.5,3),2,2)
-x3 = mvrnorm(n=200,mu=c(6,4),sigma)
-xx = rbind(x1,x2,x3)
-
-
-res2 = EM(xx,3)
-set.seed(20)
-clusters = kmeans(xx,3)
-clusternumbers = as.factor(clusters$cluster)
-plot(xx)
-points(xx[which(clusternumbers==1),],col=2)
-
-```
 
