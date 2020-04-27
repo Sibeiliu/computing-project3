@@ -292,8 +292,6 @@ res2 = EM(em_dat,2)
 res3=res2$mu %&gt;% 
   as.data.frame()
 
-res2 = res2$cluster %&gt;% as.data.frame() 
-
 clusters = kmeans(em_dat,2)
 clusternumbers = as.factor(clusters$cluster)</code></pre>
 <pre class="r"><code>a_mean = mean(res$a_value)
@@ -307,6 +305,25 @@ res3 = res3 %&gt;%
     a_value = a_value*a_sd+a_mean,
     b_value = b_value*b_sd+b_mean,
     c_value = c_value*c_sd+c_mean,
+  ) 
+res3 = res3[c(2,1),] %&gt;% 
+  as.data.frame()</code></pre>
+<pre class="r"><code>res4 = res2$cluster %&gt;% 
+  as.data.frame() %&gt;% 
+  dplyr::select(-1) 
+
+res5 = res4 %&gt;% 
+  mutate(country = region_index ) %&gt;% 
+  dplyr::select(2,1) %&gt;% 
+  rename(em_class = col) 
+ 
+res5$em_class[which(res5$em_class == 2)]=0
+res5$em_class[which(res5$em_class == 1)]=2
+res5$em_class[which(res5$em_class == 0)]=1
+
+res6 = res5 %&gt;% 
+  mutate(
+    kmeans_class = clusters$cluster
   )</code></pre>
 </div>
 
