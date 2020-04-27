@@ -132,6 +132,7 @@ res3=res2$mu %>%
 
 clusters = kmeans(em_dat,2)
 clusternumbers = as.factor(clusters$cluster)
+
 ```
 
 ```{r}
@@ -152,23 +153,27 @@ res3 = res3[c(2,1),] %>%
 ```
 
 ```{r}
+## res4 is the classification result of em and kmeans
 res4 = res2$cluster %>% 
   as.data.frame() %>% 
-  dplyr::select(-1) 
-
-res5 = res4 %>% 
+  dplyr::select(-1) %>% 
   mutate(country = region_index ) %>% 
   dplyr::select(2,1) %>% 
-  rename(em_class = col) 
- 
-res5$em_class[which(res5$em_class == 2)]=0
-res5$em_class[which(res5$em_class == 1)]=2
-res5$em_class[which(res5$em_class == 0)]=1
-
-res6 = res5 %>% 
+  rename(em_class = col) %>% 
   mutate(
     kmeans_class = clusters$cluster
   )
 
+## change class1 to class2 in em 
+res4$em_class[which(res4$em_class == 2)]=0
+res4$em_class[which(res4$em_class == 1)]=2
+res4$em_class[which(res4$em_class == 0)]=1
+
+res5 = clusters$centers %>% 
+  as.data.frame()
+
+mean_value = rbind(res3,res5) %>% 
+  mutate(method = c("em","em","kmeans","kmeans")) %>% 
+  dplyr::select(c(4,1,2,3))
 ```
 

@@ -308,23 +308,28 @@ res3 = res3 %&gt;%
   ) 
 res3 = res3[c(2,1),] %&gt;% 
   as.data.frame()</code></pre>
-<pre class="r"><code>res4 = res2$cluster %&gt;% 
+<pre class="r"><code>## res4 is the classification result of em and kmeans
+res4 = res2$cluster %&gt;% 
   as.data.frame() %&gt;% 
-  dplyr::select(-1) 
-
-res5 = res4 %&gt;% 
+  dplyr::select(-1) %&gt;% 
   mutate(country = region_index ) %&gt;% 
   dplyr::select(2,1) %&gt;% 
-  rename(em_class = col) 
- 
-res5$em_class[which(res5$em_class == 2)]=0
-res5$em_class[which(res5$em_class == 1)]=2
-res5$em_class[which(res5$em_class == 0)]=1
-
-res6 = res5 %&gt;% 
+  rename(em_class = col) %&gt;% 
   mutate(
     kmeans_class = clusters$cluster
-  )</code></pre>
+  )
+
+## change class1 to class2 in em 
+res4$em_class[which(res4$em_class == 2)]=0
+res4$em_class[which(res4$em_class == 1)]=2
+res4$em_class[which(res4$em_class == 0)]=1
+
+res5 = clusters$centers %&gt;% 
+  as.data.frame()
+
+mean_value = rbind(res3,res5) %&gt;% 
+  mutate(method = c(&quot;em&quot;,&quot;em&quot;,&quot;kmeans&quot;,&quot;kmeans&quot;)) %&gt;% 
+  dplyr::select(c(4,1,2,3))</code></pre>
 </div>
 
 
