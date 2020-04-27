@@ -143,6 +143,8 @@ while(count <100){
 em_dat = res %>% dplyr::select(-country_region) 
 
 res2 = EM(em_dat,2)
+res3_3=res2$mu %>% 
+  as.data.frame()
 res3=res2$mu %>% 
   as.data.frame()
 
@@ -174,5 +176,51 @@ fviz_gap_stat(gap_stat)
 
 
 ## seems 2 cluster would be a better choice
+
+clusters2 = kmeans(em_dat,2)
+clusternumbers = as.factor(clusters2$cluster)
 ```
+
+
+```{r}
+a_mean = mean(res$a_value)
+a_sd = sd(res$a_value)
+b_mean = mean(res$b_value)
+b_sd = sd(res$b_value)
+c_mean = mean(res$c_value)
+c_sd = sd(res$c_value)
+res3 = res3 %>% 
+  mutate(
+    a_value = a_value*a_sd+a_mean,
+    b_value = b_value*b_sd+b_mean,
+    c_value = c_value*c_sd+c_mean,
+  )
+```
+
+
+```{r}
+## calculate the errors
+combine_em=cbind(em_dat,as.data.frame(res2$cluster)) %>% dplyr::select(-row) 
+
+cal_SS=function(data){
+  data=split(data,data$col)
+  error_a=error_b=error_c=0
+  for(c in 1:2){
+for(d in 1:nrow(data[[c]])){
+ error_a=error_a+(res3[c,1]-data[[c]][d,1])^2
+ error_b=error_b+(res3[c,2]-data[[c]][d,2])^2
+ error_c=error_c+(res3[c,3]-data[[c]][d,3])^2
+ }
+  }
+return(error=c(error_a,error_b,error_c))  
+}
+
+combine_kmean=cbind(em_dat,clusters2$cluster) %>% mutate(col=clusters2$cluster)
+
+em_error=cal_SS(combine_em)
+em_error
+kmean_error=cal_SS(combine_kmean)
+kmean_error
+```
+
 
