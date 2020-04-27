@@ -126,13 +126,15 @@ while(count <100){
 ```{r}
 em_dat = res %>% dplyr::select(-country_region) 
 
+set.seed(1)
 res2 = EM(em_dat,2)
 res3=res2$mu %>% 
   as.data.frame()
+res3
 
+set.seed(1)
 clusters = kmeans(em_dat,2)
 clusternumbers = as.factor(clusters$cluster)
-
 ```
 
 ```{r}
@@ -142,14 +144,12 @@ b_mean = mean(res$b_value)
 b_sd = sd(res$b_value)
 c_mean = mean(res$c_value)
 c_sd = sd(res$c_value)
-res3 = res3 %>% 
+em_mean = res3 %>% 
   mutate(
     a_value = a_value*a_sd+a_mean,
     b_value = b_value*b_sd+b_mean,
     c_value = c_value*c_sd+c_mean,
   ) 
-res3 = res3[c(2,1),] %>% 
-  as.data.frame()
 ```
 
 ```{r}
@@ -164,16 +164,42 @@ res4 = res2$cluster %>%
     kmeans_class = clusters$cluster
   )
 
-## change class1 to class2 in em 
-res4$em_class[which(res4$em_class == 2)]=0
-res4$em_class[which(res4$em_class == 1)]=2
-res4$em_class[which(res4$em_class == 0)]=1
-
-res5 = clusters$centers %>% 
+kmean_mean = clusters$centers %>% 
   as.data.frame()
 
-mean_value = rbind(res3,res5) %>% 
+mean_value = rbind(em_mean,kmean_mean) %>% 
   mutate(method = c("em","em","kmeans","kmeans")) %>% 
   dplyr::select(c(4,1,2,3))
+```
+
+```{r}
+res5 = res4 %>%
+  mutate(em_a = ifelse(em_class == 1,mean_value[1,2],mean_value[2,2]),
+         em_b = ifelse(em_class == 1,mean_value[1,3],mean_value[2,3]),
+         em_c = ifelse(em_class == 1,mean_value[1,4],mean_value[2,4]),
+         kmean_a = ifelse(kmeans_class == 1,mean_value[3,2],mean_value[4,2]),
+         kmean_b = ifelse(kmeans_class == 1,mean_value[3,3],mean_value[4,3]),
+         kmean_c = ifelse(kmeans_class == 1,mean_value[3,4],mean_value[4,4]))
+final = cbind(res5,res[,2:4] ) %>% 
+  mutate(a_em_error = abs(em_a-a_value)^2,
+         a_kmeans_error = abs(kmean_a-a_value)^2,
+         b_em_error = abs(em_b-b_value)^2,
+         b_kmeans_error = abs(kmean_b-b_value)^2,
+         c_em_error = abs(em_c-c_value)^2,
+         c_kmeans_error = abs(kmean_c-c_value)^2)
+
+a_em_error = sum(final$a_em_error)
+b_em_error = sum(final$b_em_error)
+c_em_error = sum(final$c_em_error)
+a_kmean_error = sum(final$a_kmeans_error)
+b_kmean_error = sum(final$b_kmeans_error)
+c_kmean_error = sum(final$c_kmeans_error)
+em_error = c(a_em_error,b_em_error,c_em_error)
+kmean_error = c(a_kmean_error,b_kmean_error,c_kmean_error)
+error_table = rbind(em_error,kmean_error) %>% 
+  as.data.frame() %>% 
+  rename(a_error = V1,
+         b_error = V2,
+         c_error = V3)
 ```
 
