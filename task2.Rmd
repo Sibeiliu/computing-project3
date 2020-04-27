@@ -221,6 +221,8 @@ em_error=cal_SS(combine_em)
 em_error
 kmean_error=cal_SS(combine_kmean)
 kmean_error
+
+
 ```
 
 
