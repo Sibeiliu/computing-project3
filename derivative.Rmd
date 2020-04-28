@@ -18,7 +18,7 @@ library(pspline)
 library(patchwork)
 ```
 
-## data import and cleaning
+# data import and cleaning
 
 ```{r}
 df.raw = read.csv("covid19-1.csv")
@@ -56,29 +56,248 @@ df.region = function(df, region) {
 
 df.china = df.region(df, region.index[30])
 
-df.fewer = df %>% 
-  filter()
 ```
 
-## analyze
+# optimization
 
-Afghanistan
+## gradient descent
+
+```{r newton gradient}
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  a/(1+exp(-b*(t-c)))
+}
+
+# objective function to maximize
+obj = function(beta, x, y) {
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  
+  y.fit = f.logit(beta, x)
+  
+  2*dot(y, y.fit) - dot(y.fit, y.fit)
+}
+
+
+# objective, gradient and hessian
+logisticstuff <- function(x, y, beta) {
+  # obj
+  obj = obj(beta, x, y)
+  # gradient
+  f = function(beta) {
+      a = beta[1]
+      b = beta[2]
+      c = beta[3]
+      
+      y.fit = f.logit(beta, x)
+  
+      2*dot(y, y.fit) - dot(y.fit, y.fit)
+  }
+  grad = grad(f, beta)  
+  # Hessian
+  hess = -diag(3)
+ 
+  return(list(obj = obj, grad = grad, hess = hess))
+}
+
+# function to get the optimal beta (maximize)
+logitcurve = function(X, Y, func = logisticstuff, start, tol = 1e-5, maxiter = 1000) {
+  i <- 0
+  cur <- start
+  stuff <- func(X, Y, cur)
+  res <- c(0, stuff$obj, cur)
+  prevobj <- -Inf
+  prev = Inf
+  while(i < maxiter && abs(stuff$obj - prevobj) > tol) {
+    i <- i + 1
+    prevobj <- stuff$obj
+    prev <- cur
+    
+    hess = stuff$hess
+    grad = stuff$grad
+    while (!is.negative.definite(hess)) {
+      hess = hess - diag(start)
+    }
+    
+    cur <- prev - solve(hess) %*% grad
+    stuff <- func(X, Y, cur) # obj, gradient, Hessian
+    # step-halfing
+    l=1
+    while(stuff$obj <= prevobj && l < 1000){
+      cur <- prev - (1/(2^l))*solve(hess) %*% grad
+      stuff = func(X, Y, cur)
+      l= l+1
+    }
+     res <- rbind(res, c(i, stuff$obj, cur))
+  }
+  
+  return(res)
+}
+
+# test
+df.test = df.region(df, "Romania")
+test.result = logitcurve(df.test$time, df.test$cases,start = c(1599.997,	0.2641970,	98.94560))
+
+test.result2 = logitcurve(df.test$time, df.test$cases,start = c(1.936561e+06, 0.19, 1.376097e+02))
+```
+
+
+## adam
+
+```{r adam}
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  a/(1+exp(-b*(t-c)))
+}
+f = function(beta, x, y) {
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  
+  y.fit = f.logit(beta, x)
+  
+  - 2*sum(y * y.fit) + sum(y.fit * y.fit)
+}
+f.grad = function(beta, x, y) {
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  
+  a.grad = sum(2*a/(1+exp(-b*(x-c)))^2-2*y/(1+exp(-b*(x-c))))
+  b.grad = sum(2*a^2*(x-c)*exp(-b*(x-c))/(1+exp(-b*(x-c)))^3+2*a*(c-x)*y*exp(-b*(x-c))/(1+exp(-b*(x-c)))^2)
+  c.grad = sum(-2*a^2*b*exp(-b*(x-c))/(1+exp(-b*(x-c)))^3+2*a*b*y*exp(-b*(x-c))/(1+exp(-b*(x-c)))^2)
+  theta = c(a.grad,b.grad,c.grad)
+  return(theta)
+}
+
+
+adam = function(data,alpha = 0.002, beta1 = 0.9, beta2 = 0.999, theta.initial, epsilon = 1e-8, tol = 1e-10, maxt = 10000) {
+  x = data$time
+  y = data$cases
+  m.cur = 0
+  v.cur = 0
+  t = 0
+  theta.prev = Inf
+  theta.cur = theta.initial
+  while(abs(mean(theta.cur-theta.prev))>tol&& t<maxt) {
+    theta.prev = theta.cur
+    m.prev = m.cur
+    v.prev = v.cur
+    t = t+1
+    g = f.grad(theta.prev, x,y)
+    m.cur = beta1*m.prev + (1-beta1)*g
+    v.cur = beta2*v.prev + (1-beta2)*g^2
+    mbar = m.cur/(1-beta1^t)
+    vbar = v.cur/(1-beta2^t)
+    theta.cur = theta.prev - alpha*mbar/(sqrt(vbar)+epsilon)
+  }
+  c(t,theta.cur)
+}
+
+# test
+df.test = df.region(df, "Vietnam")
+test.result = adam(df.test,theta.initial = c(300,	0.1, 200),maxt = 1e+5)
+test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+6,alpha = 0.002)
+test.result
+
+f(test.result[2:4],df.test$time,df.test$time) - f(c(780.800001 ,  0.111383 ,215.153323 ),df.test$time,df.test$time)
+
+
+  
+```
+> # test
+> df.test = df.region(df, "Vietnam")
+> test.result = adam(df.test,theta.initial = c(0,	0, 0),maxt = 1e+5)
+> test.result
+[1] 1.000000e+05 1.163637e+02 2.309543e-01 1.912774e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5)
+> test.result
+[1] 1.000000e+05 3.062653e+02 1.314710e-01 2.033377e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5)
+> test.result
+[1] 1.000000e+05 4.442966e+02 1.204103e-01 2.081498e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5)
+> test.result
+[1] 1.000000e+05 5.075830e+02 1.177624e-01 2.098387e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5)
+> test.result
+[1] 1.000000e+05 5.460322e+02 1.163397e-01 2.107562e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5)
+> test.result
+[1] 1.000000e+05 5.734413e+02 1.155234e-01 2.113679e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5)
+> test.result
+[1] 1.000000e+05 5.946681e+02 1.149577e-01 2.118197e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5)
+> test.result
+[1] 1.000000e+05 6.118883e+02 1.145170e-01 2.121737e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5)
+> test.result
+[1] 1.000000e+05 6.262789e+02 1.141760e-01 2.124610e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5)
+> test.result
+[1] 1.000000e+05 6.385854e+02 1.138981e-01 2.127010e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5,alpha = 0.005)
+> test.result
+[1] 1.000000e+05 6.486948e+02 1.136925e-01 2.128920e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5,alpha = 0.01)
+> test.result
+[1] 1.000000e+05 6.553686e+02 1.135459e-01 2.130186e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5,alpha = 0.01)
+> test.result
+[1] 1.000000e+05 6.612772e+02 1.134874e-01 2.131246e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5,alpha = 0.01)
+> test.result
+[1] 1.000000e+05 6.665094e+02 1.133739e-01 2.132223e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5,alpha = 0.002)
+> test.result
+[1] 1.000000e+05 6.740703e+02 1.131599e-01 2.133656e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5,alpha = 0.002)
+> test.result
+[1] 1.000000e+05 6.809052e+02 1.130233e-01 2.134889e+02
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+5,alpha = 0.002)
+> test.result
+[1] 1.000000e+05 6.871018e+02 1.129101e-01 2.136000e+02
+> f(test.result[2:4],df.test$time,df.test$time) - f(c(780.800001 ,  0.111383 ,215.153323 ),df.test$time,df.test$time)
+[1] 170.442
+> test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+6,alpha = 0.002)
+> test.result
+[1] 1.000000e+06 7.276823e+02 1.121954e-01 2.142998e+0
+
+# analyze
+
+ [1] "Qatar"                "Romania"              "Russia"               "Rwanda"               "San Marino"           "Saudi Arabia"         "Senegal"              "Serbia"               "Singapore"           
+[10] "Slovakia"             "Slovenia"             "South Africa"         "Spain"                "Sri Lanka"            "Sweden"               "Switzerland"          "Taiwan*"              "Thailand"            
+[19] "Trinidad and Tobago"  "Tunisia"              "Turkey"               "Ukraine"              "United Arab Emirates" "United Kingdom"       "Uruguay"              "US"                   "Uzbekistan"          
+[28] "Venezuela"            "Vietnam" 
 
 ```{r}
-df.test = df.region(df, region.index[1])
 
-p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point() + ylim(0, 80)
-smooth.fit = smooth.Pspline(x = df.test$time, y = df.test$cases,df=6, method=2)
+```
+
+
+## Vietnam
+
+```{r}
+df.test = df.region(df, region.index[162])
+
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point() + ylim(0, 140)
+smooth.fit = smooth.Pspline(x = df.test$time, y = df.test$cases,df=5, method=2)
 
 f0 = predict(smooth.fit, df.test$time, nderiv=0)
 f1 = predict(smooth.fit, df.test$time, nderiv=1)
-p2 =  ggplot(mapping = aes(x = df.test$time, y = f0)) + geom_point()
+p2 =  ggplot(mapping = aes(x = df.test$time, y = f0)) + geom_point() + ylim(0, 140)
 p1 + p2
 plot(x = df.test$cases, y = f1)
 
 # select two points to fit a polynomial degree = 2 and through (0,0)
-resp = c(5.55469920,6.96920923) # from f1
-pred = c(24,74) # from df.test$cases
+resp = c(5.999722796,6.132399253) # from f1
+pred = c(91,134) # from df.test$cases
 y1 = pred[1];y2 = pred[2]
 y1d = resp[1]; y2d = resp[2]
 a = (y2d*y1^2 - y1d*y2^2) / (y2d*y1 - y1d*y2)
@@ -93,11 +312,259 @@ f.logit=function(beta, t){
   a/(1+exp(-b*(t-c)))
 }
 
-ybar = f.logit(c(109,0.4,99), df.test$time)
-p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 0.5) + ylim(0, 80) 
-p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 0.5) + ylim(0, 80)
+ybar = f.logit(c(450,0.1,210), df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 0.5) + ylim(0, 400) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 0.5) + ylim(0, 400)
 p1+p3
 ```
 
+```{r}
+# use nls
+nls.fit <- nls(cases ~ a/(1+exp(-b*(time-c))), df.test, start = list(a = 450, b = 0.1, c = 210))
+nls.result = summary(nls.fit)$parameters[,1]
+```
+         a          b          c 
+780.800001   0.111383 215.153323 
 
+
+## Venezuela 
+
+hard to fit, almost linear trend
+
+```{r}
+df.test = df.region(df, region.index[161])
+
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point() + ylim(0, 140)
+smooth.fit = smooth.Pspline(x = df.test$time, y = df.test$cases,df=5, method=2)
+
+f0 = predict(smooth.fit, df.test$time, nderiv=0)
+f1 = predict(smooth.fit, df.test$time, nderiv=1)
+p2 =  ggplot(mapping = aes(x = df.test$time, y = f0)) + geom_point() + ylim(0, 140)
+p1 + p2
+plot(x = df.test$cases, y = f1)
+
+# select two points to fit a polynomial degree = 2 and through (0,0)
+resp = c(f1[10],f1[11]) # from f1
+pred = c(df.test$cases[10],df.test$cases[11]) # from df.test$cases
+y1 = pred[1];y2 = pred[2]
+y1d = resp[1]; y2d = resp[2]
+a = (y2d*y1^2 - y1d*y2^2) / (y2d*y1 - y1d*y2)
+b = y1d/(y1*(1-y1/a))
+c = 99.5
+beta = c(a,b,c)
+
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  a/(1+exp(-b*(t-c)))
+}
+
+ybar = f.logit(c(95.28,0.426,5.48), df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 0.5) + ylim(0, 400) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 0.5) + ylim(0, 400)
+p1+p3
+```
+
+```{r}
+# use nls
+nls.fit <- nls(cases ~ a/(1+exp(-b*(time-c))), df.test, start = list(a = 2000, b = 0.3, c = 20))
+nls.result = summary(nls.fit)$parameters[,1]
+```
+         a          b          c 
+95.2801029  0.4263547  5.4823632 
+
+## Uzbekistan
+
+```{r}
+df.test = df.region(df, region.index[160])
+
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point() + ylim(0, 50)
+smooth.fit = smooth.Pspline(x = df.test$time, y = df.test$cases,df=5, method=2)
+
+f0 = predict(smooth.fit, df.test$time, nderiv=0)
+f1 = predict(smooth.fit, df.test$time, nderiv=1)
+p2 =  ggplot(mapping = aes(x = df.test$time, y = f0)) + geom_point() + ylim(0, 50)
+p1 + p2
+plot(x = f0, y = f1)
+
+# select two points to fit a polynomial degree = 2 and through (0,0)
+resp = c(f1[9],f1[10]) # from f1
+pred = c(f0[9],f1[10]) # from df.test$cases
+y1 = pred[1];y2 = pred[2]
+y1d = resp[1]; y2d = resp[2]
+a = (y2d*y1^2 - y1d*y2^2) / (y2d*y1 - y1d*y2)
+b = y1d/(y1*(1-y1/a))
+c = 6
+beta = c(a,b,c)
+
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  a/(1+exp(-b*(t-c)))
+}
+
+ybar = f.logit(c(50,1.1,5), df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 0.5) + ylim(0, 50) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 0.5) + ylim(0, 50)
+p1+p3
+```
+
+```{r}
+# use nls
+nls.fit <- nls(cases ~ a/(1+exp(-b*(time-c))), df.test, start = list(a = 50, b = 1.1, c = 5))
+summary(nls.fit)$parameters[,1]
+ybar = f.logit(summary(nls.fit)$parameters[,1], df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 0.5) + ylim(0, 50) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 0.5) + ylim(0, 50)
+p1+p3
+```
+         a          b          c 
+50.1234967  0.7303043  4.0919766 
+
+## Uruguay
+
+```{r}
+df.test = df.region(df, region.index[158])
+
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point() + ylim(0, 200)
+smooth.fit = smooth.Pspline(x = df.test$time, y = df.test$cases,df=5, method=2)
+
+f0 = predict(smooth.fit, df.test$time, nderiv=0)
+f1 = predict(smooth.fit, df.test$time, nderiv=1)
+p2 =  ggplot(mapping = aes(x = df.test$time, y = f0)) + geom_point() + ylim(0, 200)
+p1 + p2
+plot(x = f0, y = f1)
+
+# select two points to fit a polynomial degree = 2 and through (0,0)
+resp = c(f1[9],f1[10]) # from f1
+pred = c(f0[9],f1[10]) # from f0
+y1 = pred[1];y2 = pred[2]
+y1d = resp[1]; y2d = resp[2]
+a = (y2d*y1^2 - y1d*y2^2) / (y2d*y1 - y1d*y2)
+b = y1d/(y1*(1-y1/a))
+c = 6
+beta = c(a,b,c)
+
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  a/(1+exp(-b*(t-c)))
+}
+
+ybar = f.logit(c(154,1.1,6), df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 0.5) + ylim(0, 200) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 0.5) + ylim(0, 200)
+p1+p3
+```
+
+```{r}
+# use nls
+nls.fit <- nls(cases ~ a/(1+exp(-b*(time-c))), df.test, start = list(a = 154, b = 1.1, c = 6))
+summary(nls.fit)$parameters[,1]
+ybar = f.logit(summary(nls.fit)$parameters[,1], df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 0.5) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 0.5)
+p1+p3
+```
+         a          b          c 
+173.5742876   0.5981794   5.6981907
+
+## Qatar
+
+```{r}
+df.test = df.region(df, "Qatar")
+
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point() + ylim(0, 600)
+smooth.fit = smooth.Pspline(x = df.test$time, y = df.test$cases,df=5, method=2)
+
+f0 = predict(smooth.fit, df.test$time, nderiv=0)
+f1 = predict(smooth.fit, df.test$time, nderiv=1)
+p2 =  ggplot(mapping = aes(x = df.test$time, y = f0)) + geom_point() + ylim(0, 600)
+p1 + p2
+plot(x = f0, y = f1)
+
+# select two points to fit a polynomial degree = 2 and through (0,0)
+resp = c(f1[23],f1[14]) # from f1
+pred = c(f0[23],f1[14]) # from f0
+y1 = pred[1];y2 = pred[2]
+y1d = resp[1]; y2d = resp[2]
+a = (y2d*y1^2 - y1d*y2^2) / (y2d*y1 - y1d*y2)
+b = y1d/(y1*(1-y1/a))
+c = 6
+c(a,b,c)
+
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  a/(1+exp(-b*(t-c)))
+}
+
+ybar = f.logit(c(700,1,90), df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 1) + ylim(0, 600) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 1) + ylim(0, 600)
+p1+p3
+```
+
+```{r}
+# use nls
+nls.fit <- nls(cases ~ a/(1+exp(-b*(time-c))), df.test, start = list(a = 700, b = 1, c = 90))
+summary(nls.fit)$parameters[,1]
+ybar = f.logit(summary(nls.fit)$parameters[,1], df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 0.5) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 0.5)
+p1+p3
+```
+         a          b          c 
+480.403252   0.637724  83.029500 
+
+## Romania
+
+```{r}
+df.test = df.region(df, "Romania")
+
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point() + ylim(0, 800)
+smooth.fit = smooth.Pspline(x = df.test$time, y = df.test$cases,df=5, method=2)
+
+f0 = predict(smooth.fit, df.test$time, nderiv=0)
+f1 = predict(smooth.fit, df.test$time, nderiv=1)
+p2 =  ggplot(mapping = aes(x = df.test$time, y = f0)) + geom_point() + ylim(0, 800)
+p1 + p2
+plot(x = f0, y = f1)
+
+# select two points to fit a polynomial degree = 2 and through (0,0)
+resp = c(f1[21],f1[20]) # from f1
+pred = c(f0[21],f1[20]) # from f0
+y1 = pred[1];y2 = pred[2]
+y1d = resp[1]; y2d = resp[2]
+a = (y2d*y1^2 - y1d*y2^2) / (y2d*y1 - y1d*y2)
+b = y1d/(y1*(1-y1/a))
+c = 6
+c(a,b,c)
+
+f.logit=function(beta, t){
+  a = beta[1]
+  b = beta[2]
+  c = beta[3]
+  a/(1+exp(-b*(t-c)))
+}
+
+ybar = f.logit(c(1.936561e+06, 0.19, 1.376097e+02), df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 1) + ylim(0, 800) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 1) + ylim(0, 800)
+p1+p3
+```
+
+```{r}
+# use nls
+nls.fit <- nls(cases ~ a/(1+exp(-b*(time-c))), df.test, start = list(a=162, b=	0.4,c=	13),control = list(maxiter = 10000,minFactor=1/2621446666666,warnOnly = TRUE))
+summary(nls.fit)$parameters[,1]
+ybar = f.logit(summary(nls.fit)$parameters[,1], df.test$time)
+p1 = ggplot(mapping = aes(x = df.test$time, y = df.test$cases)) + geom_point(size = 0.5) 
+p3 = ggplot(mapping = aes(x = df.test$time, y = ybar)) + geom_point(size = 0.5)
+p1+p3
+```
 
