@@ -1,0 +1,41 @@
+---
+title: "Analyses of daily COVID-19 cases across nations"
+author: "Group11: Sibei Liu, Xue Jin, Yuchen Qi, Xinru Wang"
+date: "05/01/2020"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+# Objective
+
+# Statistical Methods 
+
+## Adam Algorithm
+
+
+## EM Algorithm
+
+# Result
+
+# Discussion
+
+## Task 1: 
+
+## Task 2
+
+# Conclusions
+
+
+\clearpage
+
+# Figures
+
+```{r , echo=FALSE, fig.cap="Identification ratio when number of weak predictors increase", out.width='90%', fig.pos='h', fig.align = "center"}
+
+```
+
+```{r , echo=FALSE, fig.cap="Distribution of identification ratio of Null/Strong/WAI/WBC predictors at different numbers", out.width='90%', fig.pos='h', fig.align = "center"}
+
+```
+
