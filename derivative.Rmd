@@ -55,8 +55,38 @@ df.region = function(df, region) {
 
 
 df.china = df.region(df, region.index[30])
+df.us = df.region(df, "US")
 
+df.test = df.region(df, "US")
+test.result = adam(df.test,theta.initial = c(100000,	0.1, 200),maxt = 1e+6)
+test.result = adam(df.test,theta.initial = test.result[2:4],maxt = 1e+6,alpha = 0.001)
+test.result
+
+# China
+df.test = df.region(df, "China")
+nls.china = nls(cases ~ a/(1+exp(-b*(time-c))), df.test, start = list(a = 80000,b=0.0869951070488976,c=56.0118879117201))
+nls.result = summary(nls.china)$parameters[,1]
+
+adam.result = adam(df.test,theta.initial =nls.result,maxt = 1e+6)
+adam.result
+adam2 = adam(df.test,theta.initial =c(80000, 2.186193e-01, 90),maxt = 1e+6)
+
+yplot.adam = f.logit(adam2[2:4],t = df.test$time)
+plot(df.test$time,yplot.adam, ylim=c(0,90000))
+par(new=TRUE)
+plot(df.test$time,df.test$cases,col="green",  ylim=c(0,90000))
 ```
+
+adam                 a            b            c
+[1] t=1.000000e+06 1.019762e+05 3.986966e-01 9.977302e+01 alpha=0.002
+[2] t=1.000000e+06 1.029744e+05 3.971065e-01 9.981956e+01 alpha=0.001
+
+nls           a            b            c 
+1.130883e+05 3.830366e-01 1.002671e+02 
+
+
+china nls          a            b            c 
+         7.867403e+04 2.186193e-01 8.685954e+01 
 
 # optimization
 
