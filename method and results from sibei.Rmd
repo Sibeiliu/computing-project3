@@ -1,0 +1,23 @@
+---
+title: "method and results"
+author: "Sibei Liu sl4660"
+date: "2020/4/28"
+output: pdf_document
+---
+
+
+# Method
+
+
+# Results
+
+After applying the Adam algorithm in 116 countries, we get the estimated a,b,c values
+for each country. The results are in Table 1. The maximum a value is 138340 from Italy.The b value ranges from 0.085(Singapore) to 3.857(Trinidad and Tobago).  The c value changes from 70 (China, Taiwan) to 4(Uzbekistan). 
+
+\begin{center}
+\includegraphics{./Plots/abc.jpg}
+\end{center}
+
+\begin{center}
+Table 1. Estimated a,b,c values in each country
+\end{center}
