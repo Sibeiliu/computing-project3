@@ -12,7 +12,9 @@ output:
 Since it‘s first outbreak in January, the novel coronavirus (COVID-19) has been spreading rapidly through China and expanded to touch nearly every corner of the globe. Hundreds of thousands of people around the world have been sickened and over 200,000 have died. Efforts to contain the spread of the Covid-19 pandemic are now the top priority of governments. To make scientific decisions, such as quarantine, active monitoring, border controls, and lockdown, it is particularly crucial for policymakers to accurately predict how the spread of COVID-19 will change over time. 
 
 A logistic growth curve can be an effective way to capture the trajectory of cumulative cases  of COVID-19. Characterized by an S-shaped curve, logistic growth model is approximately exponential at first, and growth rate  accelerates as it approaches the midpoint of the curve but  begins to decelerate as it approaches the model’s upper bound, called the carrying capacity.
-In the COVID-19 case,  this maximum limit would be the maximum number of cases a region can reach. The more people who have the virus, the more rapidly it spreads, and the growth will necessarily diminish  when everybody is sick, which make the logistic model a good one to study the spread.
+In the COVID-19 case, The more people who have the virus, the more rapidly it spreads, and the growth will necessarily diminish  when everybody is sick, which make the logistic model a good one to study the spread. In particular, this maximum limit would be the maximum number of cases a region can reach denoted by a. The t is the days since the first infection found. The b is the growth rate. And the c is the mid-point when the cumulative cases reach a/2.
+
+$$f(t)=\frac{a}{1+exp{-b(t-c)}}$$
 
 ## Objectives
 To help predict future spread of  Covid-19 and to identify risk factors, our project aims to fit a logistic curve to the cumulative confirmed COVID-19 cases in each region of the world by developing an optimization algorithm and implement  K-mean and Gaussian mixture model
