@@ -191,6 +191,11 @@ res4 = res2$cluster %>%
   rename(GMM_class = col) %>% 
   mutate(
     kmeans_class = clusters$cluster
+  ) %>% 
+  mutate(
+    a_value = res$a_value,
+    b_value = res$b_value,
+    c_value = res$c_value
   )
 
 res4[1:50,] %>% 

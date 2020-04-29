@@ -106,8 +106,7 @@ To compare GMM and Kmeans method, we used Dunn Index method. From  (\textbf{Tabl
 
 ## Task 2:
 
-# Conclusions
-
+According to Kmeans CLassification, we have three clusters in these countries with different maximum cases, growth rate and mid-point. But due to the inaccurate data in early stage of some countries, we may get inaccurate estimate of a, b, c value, which leads to wrong classification of some countries, such as Spain and France. And Kmeans clustering also has some disadvantages, one of them is that this method assumes the clusters as spherical, so does not work efficiently with complex geometrical shaped data. 
 
 \clearpage
 
@@ -144,6 +143,42 @@ knitr::include_graphics("Plots/kmeans_map.jpg")
 
 \clearpage
 
+# Table 
+
+\begin{center}
+\includegraphics{./Plots/mean_value.jpg}
+\end{center}
+\begin{center}
+Table 1. Centering point result
+\end{center}
+
+\begin{center}
+\includegraphics{./Plots/class1.jpg}
+\end{center}
+\begin{center}
+Table 2. Classification result
+\end{center}
+
+\begin{center}
+\includegraphics{./Plots/class2.jpg}
+\end{center}
+\begin{center}
+Table 2. Classification result
+\end{center}
+
+\begin{center}
+\includegraphics{./Plots/class3.jpg}
+\end{center}
+\begin{center}
+Table 2. Classification result
+\end{center}
+
+\begin{center}
+\includegraphics{./Plots/dunn_index.jpg}
+\end{center}
+\begin{center}
+Table 3. Dunn Index Result
+\end{center}
 
 ## References
 \begin{enumerate}
