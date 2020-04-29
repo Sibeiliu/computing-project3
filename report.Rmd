@@ -30,6 +30,7 @@ The dataset is a a subset of the open data, which contains the cumulative number
 * ConfirmedCases: The number of confirmed case on that day;
 * Fatalities: The number of death on that day;
 
+We filter the countries that have confirmed cases greater 20 to fit the logistic curve. So in total only 116 coutries are used.
 
 # Statistical Methods 
 
