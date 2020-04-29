@@ -183,4 +183,5 @@ Table 3. Dunn Index Result
 ## References
 \begin{enumerate}
 \item[1] Miin-ShenYang, Chien-YoLai, Chih-YingLin. "A robust EM clustering algorithm for Gaussian mixture models." Pattern Recognition (2012).
+\item[2] Diederik P. Kingma and Jimmy Lei Ba. Adam : A method for stochastic optimization. 2014. arXiv:1412.6980v9
 \end{enumerate}
