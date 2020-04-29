@@ -77,3 +77,12 @@ In second kind country is as follow. The estimated a values are 16258 and 106991
 \begin{center}
 Figure 2. UK and US fitted and predicted values
 \end{center}
+
+In third kind country, who breakout reported at early Jan, their growths are very similar to each other. Old problem of fitted model reappears that it estimates both of them already reached the end of spreading. But in fact both of them is undering increase cases after May 25. But the increase of cases is much slighter than UK and US. And the increase in China after 25 May is more flat given 1) it may already enters the stable part, which means the increase slows and 2) the interventions China takes may paly an important role.
+
+\begin{center}
+\includegraphics{./Plots/China_Korea.jpeg}
+\end{center}
+\begin{center}
+Figure 3. China and South Korea fitted and predicted values
+\end{center}
