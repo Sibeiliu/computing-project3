@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.99999 (TeX Live 2018) (preloaded format=xelatex 2020.4.13)  29 APR 2020 16:23
+This is XeTeX, Version 3.14159265-2.6-0.99999 (TeX Live 2018) (preloaded format=xelatex 2020.4.13)  29 APR 2020 17:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1132,100 +1132,134 @@ Package xcolor Warning: Incompatible color definition on input line 273.
 Package xcolor Warning: Incompatible color definition on input line 275.
 
 
-Package xcolor Warning: Incompatible color definition on input line 282.
+Package xcolor Warning: Incompatible color definition on input line 283.
 
 
-Package xcolor Warning: Incompatible color definition on input line 282.
+Package xcolor Warning: Incompatible color definition on input line 283.
 
 File: xinru_task2_files/figure-latex/unnamed-chunk-4-1.pdf Graphic file (type p
 df)
 <use xinru_task2_files/figure-latex/unnamed-chunk-4-1.pdf>
 
-Package xcolor Warning: Incompatible color definition on input line 286.
+Package xcolor Warning: Incompatible color definition on input line 287.
 
 
-Package xcolor Warning: Incompatible color definition on input line 294.
+Package xcolor Warning: Incompatible color definition on input line 292.
 
 
-Package xcolor Warning: Incompatible color definition on input line 294.
+Package xcolor Warning: Incompatible color definition on input line 292.
 
 
-Overfull \vbox (0.39146pt too high) detected at line 294
+Overfull \vbox (0.42146pt too high) detected at line 292
  []
 
 
-Package xcolor Warning: Incompatible color definition on input line 294.
+Package xcolor Warning: Incompatible color definition on input line 292.
 
 [3]
 
-Package xcolor Warning: Incompatible color definition on input line 294.
+Package xcolor Warning: Incompatible color definition on input line 292.
 
 
-Package xcolor Warning: Incompatible color definition on input line 294.
+Package xcolor Warning: Incompatible color definition on input line 292.
+
+File: xinru_task2_files/figure-latex/unnamed-chunk-4-2.pdf Graphic file (type p
+df)
+<use xinru_task2_files/figure-latex/unnamed-chunk-4-2.pdf>
+
+Package xcolor Warning: Incompatible color definition on input line 296.
 
 
-Package xcolor Warning: Incompatible color definition on input line 303.
+Package xcolor Warning: Incompatible color definition on input line 301.
 
 
-Package xcolor Warning: Incompatible color definition on input line 309.
+Package xcolor Warning: Incompatible color definition on input line 301.
 
 
-Package xcolor Warning: Incompatible color definition on input line 309.
+Package xcolor Warning: Incompatible color definition on input line 314.
 
 
-Package xcolor Warning: Incompatible color definition on input line 311.
+Package xcolor Warning: Incompatible color definition on input line 321.
 
 
-Package xcolor Warning: Incompatible color definition on input line 327.
+Package xcolor Warning: Incompatible color definition on input line 321.
 
+File: xinru_task2_files/figure-latex/unnamed-chunk-4-3.pdf Graphic file (type p
+df)
+<use xinru_task2_files/figure-latex/unnamed-chunk-4-3.pdf>
 
-Package xcolor Warning: Incompatible color definition on input line 327.
-
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 329.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 329.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 329.
-
-Package xcolor Warning: Incompatible color definition on input line 395.
+Package xcolor Warning: Incompatible color definition on input line 325.
 
 [4]
-Overfull \vbox (12.72093pt too high) has occurred while \output is active []
+
+Package xcolor Warning: Incompatible color definition on input line 333.
+
+
+Package xcolor Warning: Incompatible color definition on input line 333.
+
+
+Package xcolor Warning: Incompatible color definition on input line 342.
+
+
+Package xcolor Warning: Incompatible color definition on input line 348.
+
+
+Package xcolor Warning: Incompatible color definition on input line 348.
+
+
+Package xcolor Warning: Incompatible color definition on input line 350.
+
+
+Package xcolor Warning: Incompatible color definition on input line 366.
+
+
+Package xcolor Warning: Incompatible color definition on input line 366.
+
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10> on input line 368.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <7> on input line 368.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <5> on input line 368.
+
+Package xcolor Warning: Incompatible color definition on input line 434.
 
 [5]
-
-Package xcolor Warning: Incompatible color definition on input line 400.
-
-
-Package xcolor Warning: Incompatible color definition on input line 400.
-
-
-Package xcolor Warning: Incompatible color definition on input line 468.
-
-[6]
 Overfull \vbox (12.72093pt too high) has occurred while \output is active []
 
+[6]
+
+Package xcolor Warning: Incompatible color definition on input line 439.
+
+
+Package xcolor Warning: Incompatible color definition on input line 439.
+
+
+Package xcolor Warning: Incompatible color definition on input line 507.
+
 [7]
-
-Package xcolor Warning: Incompatible color definition on input line 473.
-
-
-Package xcolor Warning: Incompatible color definition on input line 473.
-
-
-Package xcolor Warning: Incompatible color definition on input line 502.
-
-
-Package xcolor Warning: Incompatible color definition on input line 527.
-
-
-Package xcolor Warning: Incompatible color definition on input line 527.
-
-
-Package xcolor Warning: Incompatible color definition on input line 543.
+Overfull \vbox (12.72093pt too high) has occurred while \output is active []
 
 [8]
+
+Package xcolor Warning: Incompatible color definition on input line 512.
+
+
+Package xcolor Warning: Incompatible color definition on input line 512.
+
+
+Package xcolor Warning: Incompatible color definition on input line 540.
+
+
+Package xcolor Warning: Incompatible color definition on input line 565.
+
+
+Package xcolor Warning: Incompatible color definition on input line 565.
+
+
+Package xcolor Warning: Incompatible color definition on input line 581.
+
+[9]
 Missing character: There is no 绘 in font [lmmono10-italic]:!
 Missing character: There is no 制 in font [lmmono10-italic]:!
 Missing character: There is no 基 in font [lmmono10-italic]:!
@@ -1233,114 +1267,114 @@ Missing character: There is no 本 in font [lmmono10-italic]:!
 Missing character: There is no 地 in font [lmmono10-italic]:!
 Missing character: There is no 图 in font [lmmono10-italic]:!
 
-Package xcolor Warning: Incompatible color definition on input line 585.
+Package xcolor Warning: Incompatible color definition on input line 623.
 
 
-Package xcolor Warning: Incompatible color definition on input line 585.
+Package xcolor Warning: Incompatible color definition on input line 623.
 
 
-Package xcolor Warning: Incompatible color definition on input line 594.
-
-[9]
-
-Package xcolor Warning: Incompatible color definition on input line 599.
+Package xcolor Warning: Incompatible color definition on input line 632.
 
 
-Package xcolor Warning: Incompatible color definition on input line 599.
+Package xcolor Warning: Incompatible color definition on input line 637.
+
+
+Package xcolor Warning: Incompatible color definition on input line 637.
 
 File: xinru_task2_files/figure-latex/unnamed-chunk-6-1.pdf Graphic file (type p
 df)
 <use xinru_task2_files/figure-latex/unnamed-chunk-6-1.pdf>
 
-Package xcolor Warning: Incompatible color definition on input line 603.
+Package xcolor Warning: Incompatible color definition on input line 641.
+
+[10]
+
+Package xcolor Warning: Incompatible color definition on input line 651.
 
 
-Package xcolor Warning: Incompatible color definition on input line 613.
+Package xcolor Warning: Incompatible color definition on input line 651.
 
 
-Package xcolor Warning: Incompatible color definition on input line 613.
+Package xcolor Warning: Incompatible color definition on input line 660.
 
 
-Package xcolor Warning: Incompatible color definition on input line 622.
+Package xcolor Warning: Incompatible color definition on input line 664.
 
 
-Package xcolor Warning: Incompatible color definition on input line 626.
-
-
-Package xcolor Warning: Incompatible color definition on input line 626.
+Package xcolor Warning: Incompatible color definition on input line 664.
 
 File: xinru_task2_files/figure-latex/unnamed-chunk-6-2.pdf Graphic file (type p
 df)
 <use xinru_task2_files/figure-latex/unnamed-chunk-6-2.pdf>
 
-Package xcolor Warning: Incompatible color definition on input line 630.
+Package xcolor Warning: Incompatible color definition on input line 668.
 
-[10]
+[11]
 
-Package xcolor Warning: Incompatible color definition on input line 636.
+Package xcolor Warning: Incompatible color definition on input line 674.
 
 
-Package xcolor Warning: Incompatible color definition on input line 636.
+Package xcolor Warning: Incompatible color definition on input line 674.
 
 File: xinru_task2_files/figure-latex/unnamed-chunk-7-1.pdf Graphic file (type p
 df)
 <use xinru_task2_files/figure-latex/unnamed-chunk-7-1.pdf>
 
-Package xcolor Warning: Incompatible color definition on input line 640.
+Package xcolor Warning: Incompatible color definition on input line 678.
 
 
-Package xcolor Warning: Incompatible color definition on input line 644.
+Package xcolor Warning: Incompatible color definition on input line 682.
 
 
-Package xcolor Warning: Incompatible color definition on input line 644.
+Package xcolor Warning: Incompatible color definition on input line 682.
 
 File: xinru_task2_files/figure-latex/unnamed-chunk-7-2.pdf Graphic file (type p
 df)
 <use xinru_task2_files/figure-latex/unnamed-chunk-7-2.pdf>
 
-Package xcolor Warning: Incompatible color definition on input line 648.
+Package xcolor Warning: Incompatible color definition on input line 686.
 
-[11]
-
-Package xcolor Warning: Incompatible color definition on input line 653.
-
-
-Package xcolor Warning: Incompatible color definition on input line 653.
-
-
-Package xcolor Warning: Incompatible color definition on input line 659.
-
-
-Package xcolor Warning: Incompatible color definition on input line 664.
-
-
-Package xcolor Warning: Incompatible color definition on input line 664.
-
-
-Package xcolor Warning: Incompatible color definition on input line 670.
-
-
-Package xcolor Warning: Incompatible color definition on input line 677.
-
-
-Package xcolor Warning: Incompatible color definition on input line 677.
-
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 688.
 [12]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 688.
+
+Package xcolor Warning: Incompatible color definition on input line 691.
+
+
+Package xcolor Warning: Incompatible color definition on input line 691.
+
+
+Package xcolor Warning: Incompatible color definition on input line 697.
+
+
+Package xcolor Warning: Incompatible color definition on input line 702.
+
+
+Package xcolor Warning: Incompatible color definition on input line 702.
+
+
+Package xcolor Warning: Incompatible color definition on input line 708.
+
+
+Package xcolor Warning: Incompatible color definition on input line 715.
+
+
+Package xcolor Warning: Incompatible color definition on input line 715.
+
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 726.
+[13]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 726.
 (./xinru_task2.aux)
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 688.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 688.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 726.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 726.
 Package rerunfilecheck Info: File `xinru_task2.out' has not changed.
 (rerunfilecheck)             Checksum: E3EE83C0A5EA8219AC71BAFD06981708.
  ) 
 Here is how much of TeX's memory you used:
- 24193 strings out of 492970
- 444059 string characters out of 6133938
+ 24201 strings out of 492970
+ 444471 string characters out of 6133938
  595732 words of memory out of 5000000
- 27922 multiletter control sequences out of 15000+600000
+ 27928 multiletter control sequences out of 15000+600000
  555101 words of font info for 64 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  45i,7n,68p,10452b,451s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on xinru_task2.pdf (12 pages).
+Output written on xinru_task2.pdf (13 pages).

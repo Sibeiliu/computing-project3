@@ -156,7 +156,19 @@ while(count <100){
 em_dat = res %>% dplyr::select(-country_region) 
 em_dat_scaled <- scale(em_dat)
 
-fviz_nbclust(em_dat_scaled, kmeans, method = "silhouette",k.max = 15)
+## use wss
+fviz_nbclust(em_dat_scaled, kmeans, method = "wss",k.max = 15)
+
+## use silhouette
+fviz_nbclust(em_dat_scaled, kmeans, method = "silhouette",k.max=15)
+
+## use Gap Statistic Method
+library(cluster)
+set.seed(123)
+gap_stat <- clusGap(em_dat_scaled, FUN = kmeans, nstart = 25,
+                    K.max = 10, B = 50)
+fviz_gap_stat(gap_stat)
+
 set.seed(1)
 res2 = EM(em_dat,3)
 res3=res2$mu %>% 
@@ -187,7 +199,7 @@ res4[1:50,] %>%
 res4[51:100,] %>% 
   knitr::kable(booktabs = T, align = 'c')
 
-res4[100:116,] %>% 
+res4[101:116,] %>% 
   knitr::kable(booktabs = T, align = 'c')
 
 kmean_mean = clusters$centers %>% 
