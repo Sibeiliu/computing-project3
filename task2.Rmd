@@ -210,6 +210,10 @@ MSE%>%as.data.frame() %>%  knitr::kable()
 res %>% knitr::kable()
 ```
 
+```{r}
+res %>% filter(country_region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% knitr::kable()
+```
+
 
 
 Plot some country
@@ -227,7 +231,7 @@ g1=ggplot()+geom_line(frame,mapping = aes(x=value,y=y),color='red')+
 ##Vietnam
 data_try1_1=df_list$Vietnam
 frame1_1=as.tibble(
-  x=seq(1,100,by=1)) %>% mutate(
+  x=seq(1,200,by=1)) %>% mutate(
   y=f.logit(unlist(res[which(region_index=="Vietnam"),2:4]) %>% as.vector(),value)
 )
 
