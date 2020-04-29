@@ -1,10 +1,10 @@
 ---
 title: "task2"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,include=FALSE)
+knitr::opts_chunk$set(echo = TRUE,echo=FALSE)
 library(tidyverse)
 library(ggplot2)
 library(MASS)
@@ -81,6 +81,7 @@ all_t=rbind(all_t,df_list[[c]][nrow(df_list[[c]]),3])
 
 
 
+
 name_list=unlist(res[,1]) %>% as.vector()
 a_values=unlist(res[,2]) %>% as.vector()
 b_values=unlist(res[,3]) %>% as.vector()
@@ -88,12 +89,19 @@ c_values=unlist(res[,4]) %>% as.vector()
 a_values[23]=78732
 b_values[23]=0.223
 c_values[23]=18
+
+a_values[58]=8801
+b_values[58]=0.284
+c_values[58]=40
+
+
 res=data.frame(country_region=name_list,a_value=a_values,b_value=b_values,c_value=c_values)
 
 sum((res[,4])<all_t[,1])# total country pass the mid point
 
 
 names=res[which((res[,4])<all_t[,1]),1]# names of those country
+names
 
 res[which.min(unlist(res[,3])%>% as.vector()),c(1,3)] # name of country who has most flat grouth rate
 
@@ -339,7 +347,7 @@ y_add_hat_VI2=f.logit(unlist(res[which(region_index=="Vietnam"),2:4]) %>% as.vec
 test_MSE_VI=mse(y_add_hat_VI2,add_1[[6]]$n)
 
 
-test=data.frame(Country=c("Afghanistan","China","Korea_South","United_Kingdom","US","Vietnam"),Train_error=c(test_MSE_AF,test_MSE_china,test_MSE_KS,test_MSE_UK,test_MSE_US,test_MSE_VI))
+test=data.frame(Country=c("Afghanistan","China","Korea_South","United_Kingdom","US","Vietnam"),test_error=c(test_MSE_AF,test_MSE_china,test_MSE_KS,test_MSE_UK,test_MSE_US,test_MSE_VI))
 ```
 
 ```{r}
