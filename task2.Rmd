@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,include=FALSE)
 library(tidyverse)
 library(ggplot2)
 library(MASS)
@@ -79,6 +79,17 @@ all_t=NULL
 for(c in 1:length(df_list))
 all_t=rbind(all_t,df_list[[c]][nrow(df_list[[c]]),3])
 
+
+
+name_list=unlist(res[,1]) %>% as.vector()
+a_values=unlist(res[,2]) %>% as.vector()
+b_values=unlist(res[,3]) %>% as.vector()
+c_values=unlist(res[,4]) %>% as.vector()
+a_values[23]=78732
+b_values[23]=0.223
+c_values[23]=18
+res=data.frame(country_region=name_list,a_value=a_values,b_value=b_values,c_value=c_values)
+
 sum((res[,4])<all_t[,1])# total country pass the mid point
 
 
@@ -97,49 +108,62 @@ f.logit=function(beta, t){
   c = beta[3]
   return(a/(1+exp(-b*(t-c))))
 }
-for(i in 1:length(df_list)){
-dat_ori=df_list[[i]]
-plot(dat_ori$time,dat_ori$cases)
-lines(dat_ori$time,f.logit(unlist(res[i,2:4]) %>%as.vector() ,dat_ori$time))}
+#for(i in 1:length(df_list)){
+#dat_ori=df_list[[i]]
+#plot(dat_ori$time,dat_ori$cases)
+#lines(dat_ori$time,f.logit(unlist(res[i,2:4]) %>%as.vector() ,dat_ori$time))}
 ```
+
 
 ## predict data 
 ```{r}
-x3_25=read_csv("3.25-4.05/03-25-2020.csv.txt")%>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom")) %>% mutate(
+x3_25=read_csv("3.25-4.05/03-25-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom")) %>% mutate(
   days=c(30,63,63,54,30,62)
 )
 
-x3_26=read_csv("3.25-4.05/03-26-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom")) %>% mutate(
+x3_26=read_csv("3.25-4.05/03-26-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))  %>% mutate(
   days=c(30,63,63,54,30,62)+1
 )
-x3_27=read_csv("3.25-4.05/03-27-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
+x3_27=read_csv("3.25-4.05/03-27-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom")) %>% mutate(
   days=c(30,63,63,54,30,62)+2
 )
-x3_28=read_csv("3.25-4.05/03-28-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
+x3_28=read_csv("3.25-4.05/03-28-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
   days=c(30,63,63,54,30,62)+3
 )
-x3_29=read_csv("3.25-4.05/03-29-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>%  filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
+x3_29=read_csv("3.25-4.05/03-29-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
   days=c(30,63,63,54,30,62)+4
 )
-x3_30=read_csv("3.25-4.05/03-30-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
+x3_30=read_csv("3.25-4.05/03-30-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>%mutate(
   days=c(30,63,63,54,30,62)+5
 )
-x3_31=read_csv("3.25-4.05/03-31-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
+x3_31=read_csv("3.25-4.05/03-31-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>%mutate(
   days=c(30,63,63,54,30,62)+6
 )
-x4_1=read_csv("3.25-4.05/04-01-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
+x4_1=read_csv("3.25-4.05/04-01-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>%mutate(
   days=c(30,63,63,54,30,62)+7
 )
-x4_2=read_csv("3.25-4.05/04-02-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
+x4_2=read_csv("3.25-4.05/04-02-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>%mutate(
   days=c(30,63,63,54,30,62)+8
 )
-x4_3=read_csv("3.25-4.05/04-03-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
+x4_3=read_csv("3.25-4.05/04-03-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>%mutate(
   days=c(30,63,63,54,30,62)+9
 )
-x4_4=read_csv("3.25-4.05/04-04-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
+x4_4=read_csv("3.25-4.05/04-04-2020.csv.txt") %>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>%mutate(
   days=c(30,63,63,54,30,62)+10
 )
-x4_5=read_csv("3.25-4.05/04-05-2020.csv.txt") %>% group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>% mutate(
+x4_5=read_csv("3.25-4.05/04-05-2020.csv.txt")%>% 
+group_by(Country_Region) %>% summarize(n=sum(Confirmed)) %>% filter(Country_Region  %in% c("Afghanistan","Vietnam","China","US","Korea, South","United Kingdom"))%>%mutate(
   days=c(30,63,63,54,30,62)+11
 )
 ```
@@ -161,12 +185,16 @@ for(i in 1:length(add)){
   n_obs=add_1[[i]]$n
   MSE=c(MSE,mse(y_hat,n_obs))
 }
-MSE
-names(MSE)=c("Afghanistan","China","Korea_South","United_Kingdom","US","Vietnam")
 
+names(MSE)=c("Afghanistan","China","Korea_South","United_Kingdom","US","Vietnam")
+MSE%>%as.data.frame() %>%  knitr::kable()
 ```
 
 
+
+```{r}
+res %>% knitr::kable()
+```
 
 
 
@@ -205,14 +233,20 @@ ggplot()+geom_line(frame1_2,mapping = aes(x=value,y=y),color='red')+
 
 ##China
 
-data_try2=df_list$China
+data_try2=df_list$China %>% mutate(
+  time=time
+)
 frame2=as.tibble(
   x=seq(1,200,by=1)) %>% mutate(
   y=f.logit(unlist(res[which(region_index=="China"),2:4]) %>% as.vector(),value)
 )
 
+add_1_china=add_1[[2]] %>% mutate(
+  days=days
+)
+
 ggplot()+geom_line(frame2,mapping = aes(x=value,y=y),color='red')+
-  geom_point(data_try2,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "China predicted curve since first case",x="Days since first case",y="Cumulative cases")+geom_point(add_1[[2]],mapping=aes(x=days,y=n),color="blue")
+  geom_point(data_try2,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "China predicted curve since first case",x="Days since first case",y="Cumulative cases")+geom_point(add_1_china,mapping=aes(x=days,y=n),color="blue")
 
 ## US
 data_try3=df_list$US
@@ -238,7 +272,79 @@ ggplot()+geom_line(frame4,mapping = aes(x=value,y=y),color='red')+
 ```
 
 
+```{r}
+## Train error
+#china
+y_add_hat=f.logit(unlist(res[which(region_index=="China"),2:4]) %>% as.vector(),data_try2$time)
 
+train_MSE_china=mse(y_add_hat,data_try2$cases)
+
+# AF
+y_add_hat_AF=f.logit(unlist(res[which(region_index=="Afghanistan"),2:4]) %>% as.vector(),data_try$time)
+
+train_MSE_AF=mse(y_add_hat_AF,data_try$cases)
+
+# US
+y_add_hat_US=f.logit(unlist(res[which(region_index=="US"),2:4]) %>% as.vector(),data_try3$time)
+
+train_MSE_US=mse(y_add_hat_US,data_try3$cases)
+#KS
+y_add_hat_KS=f.logit(unlist(res[which(region_index=="Korea, South"),2:4]) %>% as.vector(),data_try4$time)
+
+train_MSE_KS=mse(y_add_hat_KS,data_try4$cases)
+#uk
+y_add_hat_UK=f.logit(unlist(res[which(region_index=="United Kingdom"),2:4]) %>% as.vector(),data_try1_2$time)
+
+train_MSE_UK=mse(y_add_hat_UK,data_try1_2$cases)
+#vie
+y_add_hat_VI=f.logit(unlist(res[which(region_index=="Vietnam"),2:4]) %>% as.vector(),data_try1_1$time)
+
+train_MSE_VI=mse(y_add_hat_VI,data_try1_1$cases)
+
+
+train=data.frame(Country=c("Afghanistan","China","Korea_South","United_Kingdom","US","Vietnam"),Train_error=c(train_MSE_AF,train_MSE_china,train_MSE_KS,train_MSE_UK,train_MSE_US,train_MSE_VI))
+
+train %>% knitr::kable()
+```
+
+
+
+```{r}
+# test error
+#china
+y_add_hat1=f.logit(unlist(res[which(region_index=="China"),2:4]) %>% as.vector(),add_1_china$days)
+
+test_MSE_china=mse(y_add_hat1,add_1_china$n)
+
+# AF
+y_add_hat_AF1=f.logit(unlist(res[which(region_index=="Afghanistan"),2:4]) %>% as.vector(),add_1[[1]]$days)
+
+test_MSE_AF=mse(y_add_hat_AF1,add_1[[1]]$n)
+
+# US
+y_add_hat_US1=f.logit(unlist(res[which(region_index=="US"),2:4]) %>% as.vector(),add_1[[5]]$days)
+
+test_MSE_US=mse(y_add_hat_US1,add_1[[5]]$n)
+#KS
+y_add_hat_KS2=f.logit(unlist(res[which(region_index=="Korea, South"),2:4]) %>% as.vector(),add_1[[3]]$days)
+
+test_MSE_KS=mse(y_add_hat_KS2,add_1[[3]]$n)
+#uk
+y_add_hat_UK2=f.logit(unlist(res[which(region_index=="United Kingdom"),2:4]) %>% as.vector(),add_1[[4]]$days)
+
+test_MSE_UK=mse(y_add_hat_UK2,add_1[[4]]$n)
+#vie
+y_add_hat_VI2=f.logit(unlist(res[which(region_index=="Vietnam"),2:4]) %>% as.vector(),add_1[[6]]$days)
+
+test_MSE_VI=mse(y_add_hat_VI2,add_1[[6]]$n)
+
+
+test=data.frame(Country=c("Afghanistan","China","Korea_South","United_Kingdom","US","Vietnam"),Train_error=c(test_MSE_AF,test_MSE_china,test_MSE_KS,test_MSE_UK,test_MSE_US,test_MSE_VI))
+```
+
+```{r}
+test %>% knitr::kable()
+```
 
 
 
