@@ -69,20 +69,24 @@ K-means is a special case for Gussian Mixture. It is not required to consider sm
 ## Method to select number of clusters
 
 \begin{enumerate}
-\item(1) The Elbow Method
+\item The Elbow Method
 
 Calculate the Within-Cluster-Sum of Squared Errors (WSS) for different values of k, and choose the k for which WSS becomes first starts to diminish.
 
-\item(2) The Silhouette Method
+\item The Silhouette Method
 
 The silhouette value measures how similar a point is to its own cluster (cohesion) compared to other clusters (separation).
 
-\item(3) Gap Statistic Method
+\item Gap Statistic Method
 
 The idea of the Gap Statistic is to compare the within-cluster dispersion to its expectation under an
 appropriate null reference distribution.
 
 \end{enumerate}
+
+## Dunn Index
+
+The Dunn index (DI) is a metric for evaluating clustering algorithms. It is an internal evaluation scheme, where the result is based on the clustered data itself. It aims to identify sets of clusters that are compact, with a small variance between members of the cluster, and well separated, where the means of different clusters are sufficiently far apart, as compared to the within cluster variance. For a given assignment of clusters, a higher Dunn index indicates better clustering. 
 
 # Result
 
@@ -90,7 +94,11 @@ appropriate null reference distribution.
 
 ## Task 2:
 
-The centering points of GMM and Kmeans method is shown in (\textbf{Fig. 1}), and classification result of each country using these two method is shown in (\textbf{Fig. 2}). We can see that class2 has larger maxium number of cases, smaller growth rate and larger mid-point. 
+In order to choose the best clustering number, we use three different methods: The Elbow Method, The Silhouette Method and Gap Statistic Method. From the results (\textbf{Fig. 1,2,3}), we finally choose three as our clustering number, given that when clustering number is five, there will be NA in GMM method. 
+
+The centering points of GMM and Kmeans method is shown in (\textbf{Table. 1}), and classification result of each country using these two method is shown in (\textbf{Table. 2}) and (\textbf{Fig. 4,5}). And the geographical distribution of countries in these classes using these two method can be seen in (\textbf{Fig. 6}) and (\textbf{Fig. 7}), in which blue points are countries in class one, red points are countries in class two and yelloe points are countries in class three. 
+
+To compare GMM and Kmeans method, we used Dunn Index method. From  (\textbf{Table. 3}), we can see that the Dunn Index of Kmeans is higher than that of GMM. The reason may be that our data don't follow Gussian distribution. So we choose Kmeans to cluster our character value of each country. From (\textbf{Fig. 7}) and (\textbf{Table. 2}), we can see that Italy and US fall into class two, and China, France, Germany, etc fall into class three. The reason may be that Italy and US have higher growth rate and larger maximum cases value according to the given dataset. There is two types of countries in class three: one is that they have already arrived maximum point and their start time is relatively earlier than other countries, such as China and South Korea, another is that they are still in early stage and still lack of detection of covid-19, so their data may not be accurate and will increase quickly later due to more and more test, such as Spain and France.
 
 # Discussion
 
@@ -106,16 +114,38 @@ The centering points of GMM and Kmeans method is shown in (\textbf{Fig. 1}), and
 # Figures
 
 
-```{r , echo=FALSE, fig.cap="Identification ratio when number of weak predictors increase", out.width='90%', fig.pos='h', fig.align = "center"}
-
+```{r , echo=FALSE, fig.cap="WSS results", out.width='90%', fig.pos='h', fig.align = "center"}
+knitr::include_graphics("Plots/wss.jpg")
 ```
 
-```{r , echo=FALSE, fig.cap="Distribution of identification ratio of Null/Strong/WAI/WBC predictors at different numbers", out.width='90%', fig.pos='h', fig.align = "center"}
-
+```{r , echo=FALSE, fig.cap="Result of Silhouette Method", out.width='90%', fig.pos='h', fig.align = "center"}
+knitr::include_graphics("Plots/silhouette_method.jpg")
 ```
+
+```{r , echo=FALSE, fig.cap="Result of Gap Statistic Method", out.width='90%', fig.pos='h', fig.align = "center"}
+knitr::include_graphics("Plots/Gap.jpg")
+```
+
+```{r , echo=FALSE, fig.cap="Classification of GMM", out.width='90%', fig.pos='h', fig.align = "center"}
+knitr::include_graphics("Plots/gmm_cluster.jpg")
+```
+
+```{r , echo=FALSE, fig.cap="Classification of Kmeans", out.width='90%', fig.pos='h', fig.align = "center"}
+knitr::include_graphics("Plots/kmeans_cluster.jpg")
+```
+
+```{r , echo=FALSE, fig.cap="World map of classification using GMM method", out.width='90%', fig.pos='h', fig.align = "center"}
+knitr::include_graphics("Plots/gmm_map.jpg")
+```
+
+```{r , echo=FALSE, fig.cap="World map of classification using Kmeans method", out.width='90%', fig.pos='h', fig.align = "center"}
+knitr::include_graphics("Plots/kmeans_map.jpg")
+```
+
+\clearpage
+
 
 ## References
 \begin{enumerate}
 \item[1] Miin-ShenYang, Chien-YoLai, Chih-YingLin. "A robust EM clustering algorithm for Gaussian mixture models." Pattern Recognition (2012).
-\item[2] Friedman, Jerome, et al. "Pathwise coordinate optimization." The annals of applied statistics 1.2 (2007): 302-332.
 \end{enumerate}
