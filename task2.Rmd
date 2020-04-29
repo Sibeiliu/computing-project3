@@ -23,6 +23,7 @@ require(quantreg)
 require(glmnet)
 require(MASS)
 require(pROC)
+library(patchwork)
 ```
 
 ## data cleaning
@@ -220,7 +221,7 @@ frame=as.tibble(
   y=f.logit(unlist(res[1,2:4]) %>% as.vector(),value)
 )
 
-ggplot()+geom_line(frame,mapping = aes(x=value,y=y),color='red')+
+g1=ggplot()+geom_line(frame,mapping = aes(x=value,y=y),color='red')+
   geom_point(data_try,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "Afghanistan predicted curve",x="Days since first case",y="Cumulative cases")+geom_point(add_1[[1]],mapping=aes(x=days,y=n),color="blue")
 
 ##Vietnam
@@ -230,7 +231,7 @@ frame1_1=as.tibble(
   y=f.logit(unlist(res[which(region_index=="Vietnam"),2:4]) %>% as.vector(),value)
 )
 
-ggplot()+geom_line(frame1_1,mapping = aes(x=value,y=y),color='red')+
+g2=ggplot()+geom_line(frame1_1,mapping = aes(x=value,y=y),color='red')+
   geom_point(data_try1_1,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "Vietnam predicted curve",x="Days since first case",y="Cumulative cases")+geom_point(add_1[[6]],mapping=aes(x=days,y=n),color="blue")
 
 
@@ -241,7 +242,7 @@ frame1_2=as.tibble(
   y=f.logit(unlist(res[which(region_index=="United Kingdom"),2:4]) %>% as.vector(),value)
 )
 
-ggplot()+geom_line(frame1_2,mapping = aes(x=value,y=y),color='red')+
+g3=ggplot()+geom_line(frame1_2,mapping = aes(x=value,y=y),color='red')+
   geom_point(data_try1_2,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "United Kingdom predicted curve",x="Days since first case",y="Cumulative cases")+geom_point(add_1[[4]],mapping=aes(x=days,y=n),color="blue")
 
 ##China
@@ -258,7 +259,7 @@ add_1_china=add_1[[2]] %>% mutate(
   days=days
 )
 
-ggplot()+geom_line(frame2,mapping = aes(x=value,y=y),color='red')+
+g5=ggplot()+geom_line(frame2,mapping = aes(x=value,y=y),color='red')+
   geom_point(data_try2,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "China predicted curve since first case",x="Days since first case",y="Cumulative cases")+geom_point(add_1_china,mapping=aes(x=days,y=n),color="blue")
 
 ## US
@@ -268,7 +269,7 @@ frame3=as.tibble(
   y=f.logit(unlist(res[which(region_index=="US"),2:4]) %>% as.vector(),value)
 )
 
-ggplot()+geom_line(frame3,mapping = aes(x=value,y=y),color='red')+
+g4=ggplot()+geom_line(frame3,mapping = aes(x=value,y=y),color='red')+
   geom_point(data_try3,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "US predicted curve since first case",x="Days since first case",y="Cumulative cases")+geom_point(add_1[[5]],mapping=aes(x=days,y=n),color="blue")
 
 ##Korea
@@ -279,8 +280,14 @@ frame4=as.tibble(
   y=f.logit(unlist(res[which(region_index=="Korea, South"),2:4]) %>% as.vector(),value)
 )
 
-ggplot()+geom_line(frame4,mapping = aes(x=value,y=y),color='red')+
+g6=ggplot()+geom_line(frame4,mapping = aes(x=value,y=y),color='red')+
   geom_point(data_try4,mapping = aes(x=time,y=cases))+theme_bw()+labs(title = "South Korea predicted curve since first case",x="Days since first case",y="Cumulative cases")+geom_point(add_1[[3]],mapping=aes(x=days,y=n),color="blue")
+
+g1+g2
+
+g3+g4
+
+g5+g6
 
 ```
 
