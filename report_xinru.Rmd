@@ -14,15 +14,89 @@ output:
 ## Adam Algorithm
 
 
-## EM Algorithm
+
+## Guassian mixture model (with EM algorithm)
+
+Cluster analysis is a method for finding clusters with similar characters within a dataset. And clustering methods can be divided into probability model-based approaches and nonparametric approaches[1]. The probability model-based approach contains Gussian Mixture Method, which assumes that the dataset follows a gussian mixture mixture distributions. 
+
+Given that $\{\mathbf x_1,\mathbf x_2,...,\mathbf x_n \} \in \mathbb R^p$ be a collection of  $p$ dimensional data points. Assuming the following equation: 
+$$x_i\sim
+\begin{cases}
+N(\boldsymbol \mu_1, \Sigma_1), \mbox{with probability }p_1 \\
+N(\boldsymbol \mu_2, \Sigma_2), \mbox{with probability }p_2\\
+\quad\quad\vdots\quad\quad,\quad\quad \vdots\\
+N(\boldsymbol \mu_k, \Sigma_k), \mbox{with probability }p_k\\
+\end{cases}
+$$
+$\sum_{j=1}^kp_j =1$
+
+\vspace{10pt}
+
+Let $\mathbf r_i = (r_{i,1},...,r_{i,k})\in \mathbb R^k$  as the cluster indicator of $\mathbf x_i$, which  takes form $(0, 0,...,0,1,0,0)$ with $r_{i,j} =I\{ \mathbf x_i\mbox{ belongs to  cluster } j\}$. The cluster indicator $\mathbf r_i$ is a latent variable that cannot be observed. What is complete likelihood of $(\mathbf x_i,\mathbf r_i)$. 
+
+The distribution of $\mathbf r_i$ is $$f(\mathbf r_i) = \prod_{j= 1}^k p_j^{r_i,j}$$
+
+The complete log-likelihood is 
+
+$$\ell(\theta; \mathbf x,\mathbf r) = \sum_{i=1}^n \sum_{j=1}^k r_{i,j} [\log p_i + \log  f(\mathbf x_i; \boldsymbol \mu_j, \Sigma_j)] = \sum_{i=1}^n \sum_{j=1}^k r_{i,j} [\log p_i-1/2\log|\Sigma|-1/2 (\mathbf x_i-\boldsymbol \mu_j)^\top\Sigma (\mathbf x_i-\boldsymbol \mu_j)]$$
+
+**E-step** Evaluate the responsibilities using the current parameter values
+
+$$\gamma_{i, k} ^{(t)}= P(r_{i,k}=1 |\mathbf x_i,  \theta^{(t)}) =  
+\frac{p_k^{(t)}f(\mathbf x_i|\boldsymbol \mu_k^{(t)}, \Sigma_k^{(t)})}
+{\sum_{j=1}^K f(\mathbf x_i|\boldsymbol \mu_j^{(t)}, \Sigma_j^{(t)})}$$
+
+**M-step** 
+
+$\theta^{(t+1)} = \arg\max\ell( \mathbf{x}, \mathbf{\gamma}^{(t)}, \theta )$.
+
+Let $n_k = \sum_{i=1}^n \gamma_{i, k}$, we have
+
+$$\boldsymbol \mu_k^{(t+1)} = \frac{1}{n_k} \sum_{i=1}^n \gamma_{i, k} \mathbf x_i$$
+$$\Sigma_k^{(t+1)} = \frac{1}{n_k} \sum_{i=1}^n \gamma_{i, k} (\mathbf x_i - \boldsymbol \mu_k^{(t+1)})(\mathbf x_i - \boldsymbol \mu_k^{(t+1)})^T$$
+
+$$p_k^{(t+1)} = \frac{n_k}{n}$$
+
+## K-mean
+
+The $K$-means algorithm partitions data into $k$ clusters ($k$ is predetermined). We denote $\{\boldsymbol \mu_1, \boldsymbol \mu_2,...,\boldsymbol \mu_k\}$ as the  centers of the $k$ (unknown) clusters, and denote $\mathbf r_i = (r_{i,1},...,r_{i,k})\in \mathbb R^k$  as the ``hard'' cluster assignment of $\mathbf x_i$. 
+
+$k$-means finds cluster centers and cluster assignments that minimize the objective function
+$$J(\mathbf r, \boldsymbol \mu) = \sum_{i=1}^n\sum_{j=1}^kr_{i,j}\|\mathbf x_i-\mu_k\|^2$$
+
+K-means is a special case for Gussian Mixture. It is not required to consider small variances or the limit case of zero variances.
+
+## Method to select number of clusters
+
+\begin{enumerate}
+\item(1) The Elbow Method
+
+Calculate the Within-Cluster-Sum of Squared Errors (WSS) for different values of k, and choose the k for which WSS becomes first starts to diminish.
+
+\item(2) The Silhouette Method
+
+The silhouette value measures how similar a point is to its own cluster (cohesion) compared to other clusters (separation).
+
+\item(3) Gap Statistic Method
+
+The idea of the Gap Statistic is to compare the within-cluster dispersion to its expectation under an
+appropriate null reference distribution.
+
+\end{enumerate}
 
 # Result
+
+## Task 1:
+
+## Task 2:
+
+The centering points of GMM and Kmeans method is shown in (\textbf{Fig. 1}), and classification result of each country using these two method is shown in (\textbf{Fig. 2}). We can see that class2 has larger maxium number of cases, smaller growth rate and larger mid-point. 
 
 # Discussion
 
 ## Task 1: 
 
-## Task 2
+## Task 2:
 
 # Conclusions
 
@@ -30,6 +104,7 @@ output:
 \clearpage
 
 # Figures
+
 
 ```{r , echo=FALSE, fig.cap="Identification ratio when number of weak predictors increase", out.width='90%', fig.pos='h', fig.align = "center"}
 
@@ -39,3 +114,8 @@ output:
 
 ```
 
+## References
+\begin{enumerate}
+\item[1] Miin-ShenYang, Chien-YoLai, Chih-YingLin. "A robust EM clustering algorithm for Gaussian mixture models." Pattern Recognition (2012).
+\item[2] Friedman, Jerome, et al. "Pathwise coordinate optimization." The annals of applied statistics 1.2 (2007): 302-332.
+\end{enumerate}
