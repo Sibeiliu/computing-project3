@@ -11,6 +11,8 @@ output: pdf_document
 
 # Results
 
+## Task 1.1
+
 After applying the Adam algorithm in 116 countries, we get the estimated a,b,c values
 for each country. The results are in Table 1. The maximum a value is 138340 from Italy.The b value ranges from 0.085(Singapore) to 3.857(Trinidad and Tobago).  The c value changes from 70 (China, Taiwan) to 4(Uzbekistan). 
 
@@ -20,4 +22,58 @@ for each country. The results are in Table 1. The maximum a value is 138340 from
 
 \begin{center}
 Table 1. Estimated a,b,c values in each country
+\end{center}
+
+Untill 24 May, It is estimaed that there are 27 countries that pass the  midpoint. They are : Belarus, Brunei, Cambodia, China, Denmark,Estonia, Guatemala, Honduras    , Iran, Jamaica, Japan, Kazakhstan, Korea South, Liechtenstein, Norway, Pakistan, Peru, Qatar, San Marino, Slovakia, Slovenia, Sri Lanka, Sweden,Trinidad and Tobago, Uruguay,Uzbekistan, Venezuela.
+
+
+If we define the cumulative cases at 24 May surpass the 80% of a value in corresponding country is "appraoching the end". Then there are 15 countries: Brunei, China, Guatemala, Honduras, Jamaica, Kazakhstan,Korea South, Liechtenstein, San Marino, Slovakia, Sri Lanka, Trinidad and Tobago, Uruguay, Uzbekistan, Venezuela.
+
+## Task 1.2
+
+We select three kinds of countries to do the visualization: 1) The early stages of COVID-19 outbreak, no deliberate intervention implemented. Representatives: Afghanistan and Vietnam. 2) Outbreak stage, the government intervention hasn't come into effect. Representatives: UK and US. 3)After the outbreak and the govrnment interventions have been effective. Representatives: China and South Korea. The a,b,c values of above 6 example countries are as follow:
+
+\begin{center}
+\includegraphics{./Plots/examples_abc.png}
+\end{center}
+\begin{center}
+Table 2. Estimated a,b,c values in 6 countries
+\end{center}
+
+The data from 25 May to 5 April (11 days) is used as test data to examine the predictivity of fitted model. The MSEs of training data(data before 24 May) and test data are as follow. Because the original data itself is relatively large, so the calculated MSE seems to be large.
+
+\begin{center}
+\includegraphics{./Plots/train_error.png}
+\end{center}
+\begin{center}
+Table 3. MSE of train data
+\end{center}
+\begin{center}
+\includegraphics{./Plots/test_error.png}
+\end{center}
+\begin{center}
+Table 4. MSE of test data
+\end{center}
+
+But if we visualize the model fitted value(red line) and observed values(train data is black and test data is blue). In the following plot, the fitted logistic curve fits the train data well, but deviations from test data in those two countries are different. The Afghanistan and Vietnam are both at the initial outbreak, so a dramatic increase of cases can be expected. 
+
+The maximum cases(a=342) is expected to be reached around the 60th day in Afghanistan. The deviation of test data before around 1 April is smaller than that after 1 April. But the data in April 5, apparently exceeds the estimaed a value, which denote the bias of our fitted model since we built the model only based on the data before 24 May.
+
+For Vietnam, the The maximum cases(a=418) is expected to be reached around the 120th day. The fitteness of both train and test data is good.
+
+\begin{center}
+\includegraphics{./Plots/AF_and_vie.jpeg}
+\end{center}
+\begin{center}
+Figure 1. Afghanistan and Vietnam fitted and predicted values
+\end{center}
+
+
+In second kind country is as follow. The estimated a values are 16258 and 106991 for UK and US respectively.And the estimated stable stage when a is reach is 70th day and 50th day for UK and US respectively. For both of them, the red line fits black train data very well. But the increase of cases after 25 May is soaring, which is far away from the fitted line. To some extend, the Figure 2 denotes the lack of predictivity beause the lack of data when we built the model.
+
+\begin{center}
+\includegraphics{./Plots/UK_and_US.jpeg}
+\end{center}
+\begin{center}
+Figure 2. UK and US fitted and predicted values
 \end{center}
