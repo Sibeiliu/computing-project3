@@ -42,6 +42,7 @@ $$\nabla f(t,b)=-\sum_{i=1}^n(\frac{2a^2e^{(-bt+bc)}}{(1+e^{(-bt+bc)})^3}+\frac{
 $$\nabla f(t,c)=-\sum_{i=1}^n(\frac{2a^2be^{(-bt+bc)}}{(1+e^{(-bt+bc)})^3}+\frac{2abe^{(-bt+bc)}}{(1+e^{(-bt+bc)})^2})$$
 The initail guess of a,b,c in each country: $a_0$=two times the cumulative case in 24 May, $b_0$=0.3, $c_0$=40. For some special countries for example China and South Korea, the intial guess are adjusted for many times and the iteration also increases.
 
+
 # Results
 
 ## Task 1.1
