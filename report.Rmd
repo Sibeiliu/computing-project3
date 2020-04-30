@@ -2,9 +2,7 @@
 title: "Analyses of daily COVID-19 cases across nations"
 author: "Group11: Sibei Liu, Xue Jin, Yuchen Qi, Xinru Wang"
 date: "05/01/2020"
-output:
-  pdf_document:
-    latex_engine: xelatex
+output: pdf_document
 ---
 
 # Introduction
@@ -37,11 +35,236 @@ We filter the countries that have confirmed cases greater 20 to fit the logistic
 # Statistical Methods 
 
 ## Adam Algorithm
+Adam is A Method for Stochastic Optimization proposed in 2015 from Diederik P Kingma that only need the first-order gradient. The Stochastic Gradient descent (SGD) is often used when the objective function is typically non-convex (as in our case). The "Ada" is derived from "adaptive", meaning this method change the learning rate over time according to gradients before. The detailed proof and explanation can be found in Diederik's paper. Here we just extracted the fake code part from original paper to clarify. 
 
+Algorithm: 
+
+\begin{enumerate}
+\item Reqiured: $\alpha$: Stepsize \\ $\beta_1,\beta_2\in[0,1)$: Exponential decay rates for the moment estimates\\ $f(\boldsymbol\theta)$ : The objective function with parameter vetctor $\boldsymbol \theta$\\$\epsilon$ controls the converge
+\item Required: $\boldsymbol\theta_0$: Initial guess of parameters \\
+      $\mathbf m_0\leftarrow \mathbf0$: Initialize the 1st moment vector as $\mathbf 0$\\
+      $\mathbf v_0\leftarrow \mathbf0$: Initialize the 1st moment vector as $\mathbf 0$\\
+      $t\leftarrow0$:Initialize time step =0\\
+      while $\boldsymbol\theta_t-\boldsymbol\theta_{t-1}>\epsilon$ not converge, do\\
+         \ \ \ $t\leftarrow t+1$\\
+         \ \ \ $\boldsymbol g_t\leftarrow \nabla_{\theta}f_{t}(\boldsymbol\theta_{t-1})$: Get gradients w.r.t objective function at timestep $t$\\
+         \ \ \ $\boldsymbol  m_t\leftarrow \beta_1 \cdot \boldsymbol m_{t-1}+(1-\beta_1)\cdot \boldsymbol g_t$:Update biased first moment estimate \\
+         \ \ \ $\boldsymbol  v_t\leftarrow \beta_2\cdot \boldsymbol v_{t-1}+(1-\beta_2)\cdot\boldsymbol g_t^2$:Update biased second moment estimate\\
+         \ \ \ $\hat{\boldsymbol m_t}\leftarrow \boldsymbol m_t/(1-\beta_1^t)$: Compute bias-corrected first moment estimate\\
+         \ \ \ $\hat{\boldsymbol v_t}\leftarrow \boldsymbol v_t/(1-\beta_2^t)$: Compute bias-corrected second raw moment estimate\\
+         \ \ \ $\boldsymbol \theta_t=\boldsymbol \theta_{t-1}-\alpha\cdot \hat{\boldsymbol m_t}/(\sqrt{\hat{\boldsymbol v_t}+\epsilon}$: Update parameters\\
+      End while
+      Return $\boldsymbol \theta_t$ Result parameters
+\item Defult setting:$\beta_1=0.9 \  \ \  \ \beta_2=0.999 \ \ \ \ \alpha=0.001\ \ \ \ \ \epsilon=10^{-8}$
+\end{enumerate}
+
+Notes: $g_{t}^t$ indicate the element-wise t power like $(g_t)^t$. Similarly, $\beta_{1}^t$ and $\beta_{2}^t$ also means the $\beta_1$ and $\beta_2$ to the power of $t$. In our case, we set the maximun time step $t=10000$ to decrease the computation.
+
+Loss function: $$f=\sum_{i=1}^n(y_i-\frac{a}{1+exp(-b(t-c))})^2$$  
+Gradient for parametrs a,b,c:
+$$\nabla f(t,a)=\sum_{i=1}^n(\frac{2a}{(1+e^{(-bt+bc)})^2}-\frac{2y}{1+e^{(-bt+bc)}})$$
+$$\nabla f(t,b)=-\sum_{i=1}^n(\frac{2a^2e^{(-bt+bc)}}{(1+e^{(-bt+bc)})^3}+\frac{2ae^{(-bt+bc)}(c-t)y}{(1+e^{(-bt+bc)})^2})$$
+$$\nabla f(t,c)=-\sum_{i=1}^n(\frac{2a^2be^{(-bt+bc)}}{(1+e^{(-bt+bc)})^3}+\frac{2abe^{(-bt+bc)}}{(1+e^{(-bt+bc)})^2})$$
+The initail guess of a,b,c in each country: $a_0$=two times the cumulative case in 24 May, $b_0$=0.3, $c_0$=40. For some special countries for example China and South Korea, the intial guess are adjusted for many times and the iteration also increases.
 
 ## EM Algorithm
 
+Cluster analysis is a method for finding clusters with similar characters within a dataset. And clustering methods can be divided into probability model-based approaches and nonparametric approaches[1]. The probability model-based approach contains Gussian Mixture Method, which assumes that the dataset follows a gussian mixture mixture distributions. 
+
+Given that $\{\mathbf x_1,\mathbf x_2,...,\mathbf x_n \} \in \mathbb R^p$ be a collection of  $p$ dimensional data points. Assuming the following equation: 
+$$x_i\sim
+\begin{cases}
+N(\boldsymbol \mu_1, \Sigma_1), \mbox{with probability }p_1 \\
+N(\boldsymbol \mu_2, \Sigma_2), \mbox{with probability }p_2\\
+\quad\quad\vdots\quad\quad,\quad\quad \vdots\\
+N(\boldsymbol \mu_k, \Sigma_k), \mbox{with probability }p_k\\
+\end{cases}
+$$
+
+$\sum_{j=1}^kp_j =1$
+
+\vspace{10pt}
+
+Let $\mathbf r_i = (r_{i,1},...,r_{i,k})\in \mathbb R^k$  as the cluster indicator of $\mathbf x_i$, which  takes form $(0, 0,...,0,1,0,0)$ with $r_{i,j} =I\{ \mathbf x_i\mbox{ belongs to  cluster } j\}$. The cluster indicator $\mathbf r_i$ is a latent variable that cannot be observed. What is complete likelihood of $(\mathbf x_i,\mathbf r_i)$. 
+
+The distribution of $\mathbf r_i$ is $$f(\mathbf r_i) = \prod_{j= 1}^k p_j^{r_i,j}$$
+
+The complete log-likelihood is 
+
+$$\ell(\theta; \mathbf x,\mathbf r) = \sum_{i=1}^n \sum_{j=1}^k r_{i,j} [\log p_i + \log  f(\mathbf x_i; \boldsymbol \mu_j, \Sigma_j)] = \sum_{i=1}^n \sum_{j=1}^k r_{i,j} [\log p_i-1/2\log|\Sigma|-1/2 (\mathbf x_i-\boldsymbol \mu_j)^\top\Sigma (\mathbf x_i-\boldsymbol \mu_j)]$$
+
+**E-step** Evaluate the responsibilities using the current parameter values
+
+$$\gamma_{i, k} ^{(t)}= P(r_{i,k}=1 |\mathbf x_i,  \theta^{(t)}) =  
+\frac{p_k^{(t)}f(\mathbf x_i|\boldsymbol \mu_k^{(t)}, \Sigma_k^{(t)})}
+{\sum_{j=1}^K f(\mathbf x_i|\boldsymbol \mu_j^{(t)}, \Sigma_j^{(t)})}$$
+
+**M-step** 
+
+$\theta^{(t+1)} = \arg\max\ell( \mathbf{x}, \mathbf{\gamma}^{(t)}, \theta )$.
+
+Let $n_k = \sum_{i=1}^n \gamma_{i, k}$, we have
+
+$$\boldsymbol \mu_k^{(t+1)} = \frac{1}{n_k} \sum_{i=1}^n \gamma_{i, k} \mathbf x_i$$
+$$\Sigma_k^{(t+1)} = \frac{1}{n_k} \sum_{i=1}^n \gamma_{i, k} (\mathbf x_i - \boldsymbol \mu_k^{(t+1)})(\mathbf x_i - \boldsymbol \mu_k^{(t+1)})^T$$
+
+$$p_k^{(t+1)} = \frac{n_k}{n}$$
+
+## K-mean
+
+The $K$-means algorithm partitions data into $k$ clusters ($k$ is predetermined). We denote $\{\boldsymbol \mu_1, \boldsymbol \mu_2,...,\boldsymbol \mu_k\}$ as the  centers of the $k$ (unknown) clusters, and denote $\mathbf r_i = (r_{i,1},...,r_{i,k})\in \mathbb R^k$  as the ``hard'' cluster assignment of $\mathbf x_i$. 
+
+$k$-means finds cluster centers and cluster assignments that minimize the objective function
+$$J(\mathbf r, \boldsymbol \mu) = \sum_{i=1}^n\sum_{j=1}^kr_{i,j}\|\mathbf x_i-\mu_k\|^2$$
+
+K-means is a special case for Gussian Mixture. It is not required to consider small variances or the limit case of zero variances.
+
+## Method to select number of clusters
+
+\begin{enumerate}
+\item The Elbow Method
+
+Calculate the Within-Cluster-Sum of Squared Errors (WSS) for different values of k, and choose the k for which WSS becomes first starts to diminish.
+
+\item The Silhouette Method
+
+The silhouette value measures how similar a point is to its own cluster (cohesion) compared to other clusters (separation).
+
+\item Gap Statistic Method
+
+The idea of the Gap Statistic is to compare the within-cluster dispersion to its expectation under an
+appropriate null reference distribution.
+
+\end{enumerate}
+
+## Dunn Index
+
+The Dunn index (DI) is a metric for evaluating clustering algorithms. It is an internal evaluation scheme, where the result is based on the clustered data itself. It aims to identify sets of clusters that are compact, with a small variance between members of the cluster, and well separated, where the means of different clusters are sufficiently far apart, as compared to the within cluster variance. For a given assignment of clusters, a higher Dunn index indicates better clustering. 
+
+
 # Result
+
+## Task 1
+
+### Task 1.1
+
+After applying the Adam algorithm in 116 countries, we get the estimated a,b,c values
+for each country in \textbf{Table 1}. The maximum a value is 138340 from Italy.The b value ranges from 0.085(Singapore) to 3.857(Trinidad and Tobago).  The c value changes from 70 (China, Taiwan) to 4(Uzbekistan). 
+
+\begin{center}
+\includegraphics{./Plots/abc.jpg}
+\end{center}
+
+\begin{center}
+Table 1. Estimated a,b,c values in each country
+\end{center}
+
+Untill 24 May, It is estimaed that there are 27 countries that pass the  midpoint. They are : Belarus, Brunei, Cambodia, China, Denmark,Estonia, Guatemala, Honduras    , Iran, Jamaica, Japan, Kazakhstan, Korea South, Liechtenstein, Norway, Pakistan, Peru, Qatar, San Marino, Slovakia, Slovenia, Sri Lanka, Sweden,Trinidad and Tobago, Uruguay,Uzbekistan, Venezuela.
+
+
+If we define the cumulative cases at 24 May surpass the 80% of a value in corresponding country is "appraoching the end". Then there are 15 countries: Brunei, China, Guatemala, Honduras, Jamaica, Kazakhstan,Korea South, Liechtenstein, San Marino, Slovakia, Sri Lanka, Trinidad and Tobago, Uruguay, Uzbekistan, Venezuela.
+
+### Task 1.2
+
+We select three kinds of countries to do the visualization: 1) In the very beginning stages of COVID-19 outbreak. Representatives: Afghanistan and Vietnam. 2) During the Outbreak stage. Representatives: UK and US. 3)Late stage of outbreak, which may produce a complete logistic curve. Representatives: China and South Korea. The a,b,c values of above 6 example countries are as follow:
+
+\begin{center}
+\includegraphics{./Plots/examples_abc.png}
+\end{center}
+\begin{center}
+Table 2. Estimated a,b,c values in 6 countries
+\end{center}
+
+The data from 25 May to 5 April (11 days) is used as test data to examine the predictivity of fitted model. The MSEs of training data(data before 24 May) and test data are as follow. Because the original data itself is relatively large, so the calculated MSE seems to be large.
+
+\begin{center}
+\includegraphics{./Plots/train_error.png}
+\end{center}
+\begin{center}
+Table 3. MSE of train data
+\end{center}
+\begin{center}
+\includegraphics{./Plots/test_error.png}
+\end{center}
+\begin{center}
+Table 4. MSE of test data
+\end{center}
+
+But if we visualize the model fitted value(red line) and observed values(train data is black and test data is blue). In the following plot, the fitted logistic curve fits the train data well, but deviations from test data in those two countries are different. The Afghanistan and Vietnam are both at the initial outbreak, so a dramatic increase of cases can be expected. 
+
+The maximum cases(a=342) is expected to be reached around the 60th day in Afghanistan. The deviation of test data before around 1 April is smaller than that after 1 April. But the data in April 5, apparently exceeds the estimaed a value, which denote the bias of our fitted model since we built the model only based on the data before 24 May.
+
+For Vietnam, the The maximum cases(a=418) is expected to be reached around the 120th day. The fitteness of both train and test data is good.
+
+\begin{center}
+\includegraphics{./Plots/AF_and_vie.jpeg}
+\end{center}
+\begin{center}
+Figure 1. Afghanistan and Vietnam fitted and predicted values
+\end{center}
+
+
+In second kind country is as follow. The estimated a values are 16258 and 106991 for UK and US respectively.And the estimated stable stage when a is reach is 70th day and 50th day for UK and US respectively. For both of them, the red line fits black train data very well. But the increase of cases after 25 May is soaring, which is far away from the fitted line. To some extend, the \textbf{Figure 2} denotes the lack of predictivity beause the lack of data when we built the model.
+
+\begin{center}
+\includegraphics{./Plots/UK_and_US.jpeg}
+\end{center}
+\begin{center}
+Figure 2. UK and US fitted and predicted values
+\end{center}
+
+In third kind country, who breakout reported at early Jan, their growths are very similar to each other. The problem of lack of predictivity re-appears that it estimates both of them already reached the end of spreading. But in fact both of them have increase cases after May 25. But the increase of cases is much slighter than UK and US. And the increase in China after 25 May is more flat given 1) it may already enters the stable part, which means the increase slows and 2) the interventions China takes may play an important role.
+
+\begin{center}
+\includegraphics{./Plots/China_and_Korea.jpeg}
+\end{center}
+\begin{center}
+Figure 3. China and South Korea fitted and predicted values
+\end{center}
+
+
+## Task 2
+
+In order to choose the best clustering number, we use three different methods: The Elbow Method, The Silhouette Method and Gap Statistic Method. From the results (\textbf{Supplementay Fig. 1,2,3}), we finally choose three as our clustering number, given that when clustering number is five, there will be NA in GMM method. 
+
+\begin{center}
+\includegraphics{./Plots/center_abc.png}
+\end{center}
+\begin{center}
+Table 5: Centering points of GMM and Kmeans
+\end{center}
+
+\begin{center}
+\includegraphics{./Plots/combined_class.jpg}
+\end{center}
+\begin{center}
+Table 6: Cluster result of each country
+\end{center}
+
+The centering points of GMM and Kmeans method is shown in (\textbf{Table. 5}), and classification result of each country using these two method is shown in (\textbf{Table. 6}) and (\textbf{Fig. 4}). And the geographical distribution of countries in these classes using these two method can be seen in (\textbf{Fig. 5}), in which blue points are countries in class one, red points are countries in class two and yelloe points are countries in class three. 
+
+\begin{center}
+\includegraphics{./Plots/combine.jpg}
+\end{center}
+\begin{center}
+Figue 4: Visualized Cluster result of each country
+\end{center}
+
+\begin{center}
+\includegraphics{./Plots/maps.jpeg}
+\end{center}
+\begin{center}
+Figure 5: Clusters in map
+\end{center}
+
+To compare GMM and Kmeans method, we used Dunn Index method. From  (\textbf{Table. 7}), we can see that the Dunn Index of Kmeans is higher than that of GMM. The reason may be that our data don't follow Gussian distribution. So we choose Kmeans to cluster our character value of each country. From (\textbf{Fig.5}) and (\textbf{Table. 6}), we can see that Italy and US fall into class two, and China, France, Germany, etc fall into class three. The reason may be that Italy and US have higher growth rate and larger maximum cases value according to the given dataset. There is two types of countries in class three: one is that they have already arrived maximum point and their start time is relatively earlier than other countries, such as China and South Korea, another is that they are still in early stage and still lack of detection of covid-19, so their data may not be accurate and will increase quickly later due to more and more test, such as Spain and France.
+
+\begin{center}
+\includegraphics{./Plots/dunn_index.jpg}
+\end{center}
+\begin{center}
+Table 7: Dunn Index
+\end{center}
 
 # Discussion
 
@@ -56,18 +279,35 @@ Several optimization algorithms were implemented when fitting the curve. The New
 
 ## Task 2
 
-# Conclusions
+According to Kmeans CLassification, we have three clusters in these countries with different maximum cases, growth rate and mid-point. But due to the inaccurate data in early stage of some countries, we may get inaccurate estimate of a, b, c value, which leads to wrong classification of some countries, such as Spain and France. And Kmeans clustering also has some disadvantages, one of them is that this method assumes the clusters as spherical, so does not work efficiently with complex geometrical shaped data.
+
+# References
+\begin{enumerate}
+\item[1] Miin-ShenYang, Chien-YoLai, Chih-YingLin. "A robust EM clustering algorithm for Gaussian mixture models." Pattern Recognition (2012).
+\item[2] Diederik P. Kingma and Jimmy Lei Ba. Adam : A method for stochastic optimization. 2014. arXiv:1412.6980v9
+\end{enumerate}
 
 
-\clearpage
+# Supplementary
 
-# Figures
+\begin{center}
+\includegraphics{./Plots/wss.jpg}
+\end{center}
+\begin{center}
+Supplementary Fig 1. WSS
+\end{center}
 
-```{r , echo=FALSE, fig.cap="Identification ratio when number of weak predictors increase", out.width='90%', fig.pos='h', fig.align = "center"}
 
-```
+\begin{center}
+\includegraphics{./Plots/silhouette_method.jpg}
+\end{center}
+\begin{center}
+Supplementary Fig 2. Silhouette Method
+\end{center}
 
-```{r , echo=FALSE, fig.cap="Distribution of identification ratio of Null/Strong/WAI/WBC predictors at different numbers", out.width='90%', fig.pos='h', fig.align = "center"}
-
-```
-
+\begin{center}
+\includegraphics{./Plots/Gap.jpg}
+\end{center}
+\begin{center}
+Supplementary Fig 3. Gap
+\end{center}

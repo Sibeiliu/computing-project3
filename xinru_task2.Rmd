@@ -34,6 +34,7 @@ library(ModelMetrics)
 library(readxl)
 library(factoextra)
 library(fpc)
+library(patchwork)
 ```
 
 ## data cleaning
@@ -271,7 +272,7 @@ df_map_3 = df_map %>% filter(GMM_class ==3)
 mp2<-mp+geom_point(aes(x=long,y=lat,size=max),data = df_map_1,color="#0099CC")+scale_size(range=c(1,5)) +
 geom_point(aes(x=long,y=lat,size=max),data = df_map_2,color="#FF6666")+scale_size(range=c(1,5)) +
 geom_point(aes(x=long,y=lat,size=max),data = df_map_3,color="#E69F00")+scale_size(range=c(1,5)) +  
-theme(legend.position = "none") 
+theme(legend.position = "none")+labs(title="GMM cluster")
  
 ## blue class1   red class2  yellow class3
 mp2
@@ -283,16 +284,21 @@ df_map_7 = df_map %>% filter(kmeans_class ==3)
  
 mp3<-mp+geom_point(aes(x=long,y=lat,size=max),data = df_map_5,color="#0099CC")+scale_size(range=c(1,5))+ geom_point(aes(x=long,y=lat,size=max),data = df_map_6,color="#FF6666")+scale_size(range=c(1,5))+
 geom_point(aes(x=long,y=lat,size=max),data = df_map_7,color="#E69F00")+scale_size(range=c(1,5))+
-theme(legend.position = "none") 
+theme(legend.position = "none")+labs(title="Kmeans cluster")
 
 mp3 #
+
+mp2+mp3
 ```
 
 ```{r}
 d <- dist(em_dat_scaled, method = "euclidean")
 
 plotcluster(em_dat, res2$cluster[,2])
+title("GMM cluster")
+
 plotcluster(em_dat, clusters$cluster)
+title("Kmeans cluster")
 
 km_stats <- cluster.stats(d,  clusters$cluster)
 km_stats$dunn
