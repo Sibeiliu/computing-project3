@@ -10,14 +10,44 @@ output: pdf_document
 
 ## Adam
 
+Adam is A Method for Stochastic Optimization proposed in 2015 from Diederik P Kingma that only need the first-order gradient. The Stochastic Gradient descent (SGD) is often used when the objective function is typically non-convex (as in our case). The "Ada" is derived from "adaptive", meaning this method change the learning rate over time according to gradients before. The detailed proof and explanation can be found in Diederik's paper. Here we just extracted the fake code part from original paper to clarify. 
 
+Algorithm: 
+
+\begin{enumerate}
+\item Reqiured: $\alpha$: Stepsize \\ $\beta_1,\beta_2\in[0,1)$: Exponential decay rates for the moment estimates\\ $f(\boldsymbol\theta)$ : The objective function with parameter vetctor $\boldsymbol \theta$\\$\epsilon$ controls the converge
+\item Required: $\boldsymbol\theta_0$: Initial guess of parameters \\
+      $\mathbf m_0\leftarrow \mathbf0$: Initialize the 1st moment vector as $\mathbf 0$\\
+      $\mathbf v_0\leftarrow \mathbf0$: Initialize the 1st moment vector as $\mathbf 0$\\
+      $t\leftarrow0$:Initialize time step =0\\
+      while $\boldsymbol\theta_t-\boldsymbol\theta_{t-1}>\epsilon$ not converge, do\\
+         \ \ \ $t\leftarrow t+1$\\
+         \ \ \ $\boldsymbol g_t\leftarrow \nabla_{\theta}f_{t}(\boldsymbol\theta_{t-1})$: Get gradients w.r.t objective function at timestep $t$\\
+         \ \ \ $\boldsymbol  m_t\leftarrow \beta_1 \cdot \boldsymbol m_{t-1}+(1-\beta_1)\cdot \boldsymbol g_t$:Update biased first moment estimate \\
+         \ \ \ $\boldsymbol  v_t\leftarrow \beta_2\cdot \boldsymbol v_{t-1}+(1-\beta_2)\cdot\boldsymbol g_t^2$:Update biased second moment estimate\\
+         \ \ \ $\hat{\boldsymbol m_t}\leftarrow \boldsymbol m_t/(1-\beta_1^t)$: Compute bias-corrected first moment estimate\\
+         \ \ \ $\hat{\boldsymbol v_t}\leftarrow \boldsymbol v_t/(1-\beta_2^t)$: Compute bias-corrected second raw moment estimate\\
+         \ \ \ $\boldsymbol \theta_t=\boldsymbol \theta_{t-1}-\alpha\cdot \hat{\boldsymbol m_t}/(\sqrt{\hat{\boldsymbol v_t}+\epsilon}$: Update parameters\\
+      End while
+      Return $\boldsymbol \theta_t$ Result parameters
+\item Defult setting:$\beta_1=0.9 \  \ \  \ \beta_2=0.999 \ \ \ \ \alpha=0.001\ \ \ \ \ \epsilon=10^{-8}$
+\end{enumerate}
+
+Notes: $g_{t}^t$ indicate the element-wise t power like $(g_t)^t$. Similarly, $\beta_{1}^t$ and $\beta_{2}^t$ also means the $\beta_1$ and $\beta_2$ to the power of $t$. In our case, we set the maximun time step $t=10000$ to decrease the computation.
+
+Loss function: $$f=\sum_{i=1}^n(y_i-\frac{a}{1+exp(-b(t-c))})^2$$  
+Gradient for parametrs a,b,c:
+$$\nabla f(t,a)=\sum_{i=1}^n(\frac{2a}{(1+e^{(-bt+bc)})^2}-\frac{2y}{1+e^{(-bt+bc)}})$$
+$$\nabla f(t,b)=-\sum_{i=1}^n(\frac{2a^2e^{(-bt+bc)}}{(1+e^{(-bt+bc)})^3}+\frac{2ae^{(-bt+bc)}(c-t)y}{(1+e^{(-bt+bc)})^2})$$
+$$\nabla f(t,c)=-\sum_{i=1}^n(\frac{2a^2be^{(-bt+bc)}}{(1+e^{(-bt+bc)})^3}+\frac{2abe^{(-bt+bc)}}{(1+e^{(-bt+bc)})^2})$$
+The initail guess of a,b,c in each country: $a_0$=two times the cumulative case in 24 May, $b_0$=0.3, $c_0$=40. For some special countries for example China and South Korea, the intial guess are adjusted for many times and the iteration also increases.
 
 # Results
 
 ## Task 1.1
 
 After applying the Adam algorithm in 116 countries, we get the estimated a,b,c values
-for each country. The results are in Table 1. The maximum a value is 138340 from Italy.The b value ranges from 0.085(Singapore) to 3.857(Trinidad and Tobago).  The c value changes from 70 (China, Taiwan) to 4(Uzbekistan). 
+for each country in Table 1. The maximum a value is 138340 from Italy.The b value ranges from 0.085(Singapore) to 3.857(Trinidad and Tobago).  The c value changes from 70 (China, Taiwan) to 4(Uzbekistan). 
 
 \begin{center}
 \includegraphics{./Plots/abc.jpg}
@@ -81,7 +111,7 @@ In second kind country is as follow. The estimated a values are 16258 and 106991
 Figure 2. UK and US fitted and predicted values
 \end{center}
 
-In third kind country, who breakout reported at early Jan, their growths are very similar to each other. Old problem of fitted model reappears that it estimates both of them already reached the end of spreading. But in fact both of them is undering increase cases after May 25. But the increase of cases is much slighter than UK and US. And the increase in China after 25 May is more flat given 1) it may already enters the stable part, which means the increase slows and 2) the interventions China takes may paly an important role.
+In third kind country, who breakout reported at early Jan, their growths are very similar to each other. Old problem of fitted model re-appears that it estimates both of them already reached the end of spreading. But in fact both of them is undering increase cases after May 25. But the increase of cases is much slighter than UK and US. And the increase in China after 25 May is more flat given 1) it may already enters the stable part, which means the increase slows and 2) the interventions China takes may paly an important role.
 
 \begin{center}
 \includegraphics{./Plots/China_and_Korea.jpeg}
@@ -89,3 +119,4 @@ In third kind country, who breakout reported at early Jan, their growths are ver
 \begin{center}
 Figure 3. China and South Korea fitted and predicted values
 \end{center}
+
