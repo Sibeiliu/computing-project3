@@ -19,7 +19,7 @@ To help predict future spread of  Covid-19 and to identify risk factors, our pro
  (with EM algorithm) to cluster these curves based on the fitted parameters. 
 
 ## Dataset 
-The dataset is a a subset of the open data, which contains the cumulative number of confirmed cases and death of COVID-19 from Jan 21 to March 23 from 163 countries/regions. Eight variables are recorded as following: 
+The dataset is a a subset of the open data, which contains the cumulative number of confirmed cases and death of COVID-19 from Jan 21 to March 24 from 163 countries/regions. Eight variables are recorded as following: 
 
 * Id: Record ID
 * Province/State:   The lcoal state/province of the record; 
@@ -65,7 +65,7 @@ Gradient for parametrs a,b,c:
 $$\nabla f(t,a)=\sum_{i=1}^n(\frac{2a}{(1+e^{(-bt+bc)})^2}-\frac{2y}{1+e^{(-bt+bc)}})$$
 $$\nabla f(t,b)=-\sum_{i=1}^n(\frac{2a^2e^{(-bt+bc)}}{(1+e^{(-bt+bc)})^3}+\frac{2ae^{(-bt+bc)}(c-t)y}{(1+e^{(-bt+bc)})^2})$$
 $$\nabla f(t,c)=-\sum_{i=1}^n(\frac{2a^2be^{(-bt+bc)}}{(1+e^{(-bt+bc)})^3}+\frac{2abe^{(-bt+bc)}}{(1+e^{(-bt+bc)})^2})$$
-The initail guess of a,b,c in each country: $a_0$=two times the cumulative case in 24 May, $b_0$=0.3, $c_0$=40. For some special countries for example China and South Korea, the intial guess are adjusted for many times and the iteration also increases.
+The initail guess of a,b,c in each country: $a_0$=two times the cumulative case in 24 March, $b_0$=0.3, $c_0$=40. For some special countries for example China and South Korea, the intial guess are adjusted for many times and the iteration also increases.
 
 ## EM Algorithm
 
@@ -159,10 +159,10 @@ for each country in \textbf{Table 1}. The maximum a value is 138340 from Italy.T
 Table 1. Estimated a,b,c values in each country
 \end{center}
 
-Untill 24 May, It is estimaed that there are 27 countries that pass the  midpoint. They are : Belarus, Brunei, Cambodia, China, Denmark,Estonia, Guatemala, Honduras    , Iran, Jamaica, Japan, Kazakhstan, Korea South, Liechtenstein, Norway, Pakistan, Peru, Qatar, San Marino, Slovakia, Slovenia, Sri Lanka, Sweden,Trinidad and Tobago, Uruguay,Uzbekistan, Venezuela.
+Untill 24 March, It is estimaed that there are 27 countries that pass the  midpoint. They are : Belarus, Brunei, Cambodia, China, Denmark,Estonia, Guatemala, Honduras    , Iran, Jamaica, Japan, Kazakhstan, Korea South, Liechtenstein, Norway, Pakistan, Peru, Qatar, San Marino, Slovakia, Slovenia, Sri Lanka, Sweden,Trinidad and Tobago, Uruguay,Uzbekistan, Venezuela.
 
 
-If we define the cumulative cases at 24 May surpass the 80% of a value in corresponding country is "appraoching the end". Then there are 15 countries: Brunei, China, Guatemala, Honduras, Jamaica, Kazakhstan,Korea South, Liechtenstein, San Marino, Slovakia, Sri Lanka, Trinidad and Tobago, Uruguay, Uzbekistan, Venezuela.
+If we define the cumulative cases at 24 March surpass the 80% of a value in corresponding country is "appraoching the end". Then there are 15 countries: Brunei, China, Guatemala, Honduras, Jamaica, Kazakhstan,Korea South, Liechtenstein, San Marino, Slovakia, Sri Lanka, Trinidad and Tobago, Uruguay, Uzbekistan, Venezuela.
 
 ### Task 1.2
 
@@ -175,7 +175,7 @@ We select three kinds of countries to do the visualization: 1) In the very begin
 Table 2. Estimated a,b,c values in 6 countries
 \end{center}
 
-The data from 25 May to 5 April (11 days) is used as test data to examine the predictivity of fitted model. The MSEs of training data(data before 24 May) and test data are as follow. Because the original data itself is relatively large, so the calculated MSE seems to be large.
+The data from 25 March to 5 April (11 days) is used as test data to examine the predictivity of fitted model. The MSEs of training data(data before 24 March) and test data are as follow. Because the original data itself is relatively large, so the calculated MSE seems to be large.
 
 \begin{center}
 \includegraphics{./Plots/train_error.png}
@@ -192,7 +192,7 @@ Table 4. MSE of test data
 
 But if we visualize the model fitted value(red line) and observed values(train data is black and test data is blue). In the following plot, the fitted logistic curve fits the train data well, but deviations from test data in those two countries are different. The Afghanistan and Vietnam are both at the initial outbreak, so a dramatic increase of cases can be expected. 
 
-The maximum cases(a=342) is expected to be reached around the 60th day in Afghanistan. The deviation of test data before around 1 April is smaller than that after 1 April. But the data in April 5, apparently exceeds the estimaed a value, which denote the bias of our fitted model since we built the model only based on the data before 24 May.
+The maximum cases(a=342) is expected to be reached around the 60th day in Afghanistan. The deviation of test data before around 1 April is smaller than that after 1 April. But the data in April 5, apparently exceeds the estimaed a value, which denote the bias of our fitted model since we built the model only based on the data before 24 March.
 
 For Vietnam, the The maximum cases(a=418) is expected to be reached around the 120th day. The fitteness of both train and test data is good.
 
@@ -204,7 +204,7 @@ Figure 1. Afghanistan and Vietnam fitted and predicted values
 \end{center}
 
 
-In second kind country is as follow. The estimated a values are 16258 and 106991 for UK and US respectively.And the estimated stable stage when a is reach is 70th day and 50th day for UK and US respectively. For both of them, the red line fits black train data very well. But the increase of cases after 25 May is soaring, which is far away from the fitted line. To some extend, the \textbf{Figure 2} denotes the lack of predictivity beause the lack of data when we built the model.
+In second kind country is as follow. The estimated a values are 16258 and 106991 for UK and US respectively.And the estimated stable stage when a is reach is 70th day and 50th day for UK and US respectively. For both of them, the red line fits black train data very well. But the increase of cases after 25 March is soaring, which is far away from the fitted line. To some extend, the \textbf{Figure 2} denotes the lack of predictivity beause the lack of data when we built the model.
 
 \begin{center}
 \includegraphics{./Plots/UK_and_US.jpeg}
@@ -213,7 +213,7 @@ In second kind country is as follow. The estimated a values are 16258 and 106991
 Figure 2. UK and US fitted and predicted values
 \end{center}
 
-In third kind country, who breakout reported at early Jan, their growths are very similar to each other. The problem of lack of predictivity re-appears that it estimates both of them already reached the end of spreading. But in fact both of them have increase cases after May 25. But the increase of cases is much slighter than UK and US. And the increase in China after 25 May is more flat given 1) it may already enters the stable part, which means the increase slows and 2) the interventions China takes may play an important role.
+In third kind country, who breakout reported at early Jan, their growths are very similar to each other. The problem of lack of predictivity re-appears that it estimates both of them already reached the end of spreading. But in fact both of them have increase cases after March 25. But the increase of cases is much slighter than UK and US. And the increase in China after 25 March is more flat given 1) it may already enters the stable part, which means the increase slows and 2) the interventions China takes may play an important role.
 
 \begin{center}
 \includegraphics{./Plots/China_and_Korea.jpeg}
